@@ -536,7 +536,7 @@ window._firebaseReady = true;
         <div style="flex-shrink:0;background:#fff;padding:12px;border-radius:6px" id="qr-box"></div>
         <div style="flex:1;min-width:200px">
           <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Dashboard URL</div>
-          <div style="font-family:var(--mono);font-size:12px;color:var(--accent);word-break:break-all;background:var(--surface2);padding:10px 14px;border-radius:4px;border:1px solid var(--border)">https://engineeringserviceaveraunitis-ux.github.io/Oakwood-Suites-Bangkok/</div>
+          <div id="qr-url-display" style="font-family:var(--mono);font-size:12px;color:var(--accent);word-break:break-all;background:var(--surface2);padding:10px 14px;border-radius:4px;border:1px solid var(--border)">https://engineeringserviceaveraunitis-ux.github.io/KBTG/</div>
           <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:12px;line-height:1.7">
             สแกน QR Code ด้วยกล้องมือถือ<br>เพื่อเปิดหน้า Dashboard ได้ทันที
           </div>
@@ -613,6 +613,7 @@ window._firebaseReady = true;
           <input type="hidden" id="ps-name-hl">
           <div class="mfield"><label>ระบบ (System)</label><input type="text" id="ps-system" placeholder="Retail Management System (RMS)"></div>
           <div class="mfield"><label>Protocol</label><input type="text" id="ps-protocol" placeholder="เช่น RS-485"></div>
+          <div class="mfield" style="grid-column:1/-1"><label>URL Dashboard (สำหรับ QR Code)</label><input type="text" id="ps-dashboard-url" placeholder="https://engineeringserviceaveraunitis-ux.github.io/KBTG/"></div>
           <div class="mfield"><label>Baud Rate</label>
             <select id="ps-baudrate" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:8px 10px;font-family:var(--mono);font-size:12px">
               <option value="9600">9600</option>
@@ -1264,12 +1265,6 @@ window.switchAdminTab = function(tab, btn){
     populateLoopSel();
     if(typeof loadProjectSettingsForm === 'function') loadProjectSettingsForm();
   }
-  if(tab==='project'){
-    // Project Settings lives in Datalog pane — switch there
-    const logBtn = document.querySelectorAll('.nav-btn')[1];
-    window.switchTab('log', logBtn);
-    return;
-  }
 };
 
 /* ── PROJECT SETTINGS ── */
@@ -1289,7 +1284,7 @@ async function loadProjectSettingsForm(){
   if(!cfg) return;
   const map = {
     'ps-name':cfg.name,'ps-name-hl':cfg.nameHl,'ps-svcno':cfg.svcno,
-    'ps-system':cfg.system,'ps-protocol':cfg.protocol,'ps-baudrate':cfg.baudrate,'ps-total':cfg.total,'ps-online':cfg.online,
+    'ps-system':cfg.system,'ps-protocol':cfg.protocol,'ps-baudrate':cfg.baudrate,'ps-dashboard-url':cfg.dashboardUrl,'ps-total':cfg.total,'ps-online':cfg.online,
     'ps-offline':cfg.offline,'ps-loops':cfg.loops,
     'ps-m1-name':cfg.m1Name,'ps-m1-desc':cfg.m1Desc,'ps-m1-count':cfg.m1Count,'ps-m1-note':cfg.m1Note,
     'ps-m2-name':cfg.m2Name,'ps-m2-count':cfg.m2Count,'ps-m2-note':cfg.m2Note,
@@ -1312,7 +1307,7 @@ window.saveProjectSettings = async function(){
 
   const cfg = {};
   const vals = {
-    name:g('ps-name'), nameHl:g('ps-name-hl'), svcno:g('ps-svcno'), system:g('ps-system'), protocol:g('ps-protocol'), baudrate:g('ps-baudrate'),
+    name:g('ps-name'), nameHl:g('ps-name-hl'), svcno:g('ps-svcno'), system:g('ps-system'), protocol:g('ps-protocol'), baudrate:g('ps-baudrate'), dashboardUrl:g('ps-dashboard-url'),
     total: loopsData.reduce((s,l)=>s+l.t,0),
     online: loopsData.reduce((s,l)=>s+l.on,0),
     offline: loopsData.reduce((s,l)=>s+l.off,0),
@@ -1334,6 +1329,12 @@ window.saveProjectSettings = async function(){
     st.style.display='block'; setTimeout(()=>st.style.display='none',3000);
     applyProjectSettings(cfg);
     renderModelCards();
+    // Update QR URL if saved
+    if(cfg.dashboardUrl){
+      window._dashboardURL = cfg.dashboardUrl;
+      var d = document.getElementById('qr-url-display');
+      if(d) d.textContent = cfg.dashboardUrl;
+    }
   } catch(e){
     const isPermission = e.message&&(e.message.includes('permission')||e.message.includes('permissions'));
     if(isPermission){
@@ -1397,6 +1398,18 @@ function applyProjectSettings(cfg){
   if(cfg.meterDetails){
     activeMeterData = cfg.meterDetails;
     renderModelCards(); // Re-render model cards when activeMeterData is updated
+  }
+  // Dashboard URL / QR
+  if(cfg.dashboardUrl){
+    window._dashboardURL = cfg.dashboardUrl;
+    var urlEl = document.getElementById('qr-url-display');
+    if(urlEl) urlEl.textContent = cfg.dashboardUrl;
+    // Save to localStorage
+    try {
+      var p = JSON.parse(localStorage.getItem('elt_proj_cfg')||'{}');
+      p.url = cfg.dashboardUrl;
+      localStorage.setItem('elt_proj_cfg', JSON.stringify(p));
+    } catch(e){}
   }
   // Loops grid
   if(cfg.loopsData && cfg.loopsData.length){
@@ -1837,9 +1850,17 @@ document.head.appendChild(st);
 window.addEventListener('load', function(){
   try {
     var qrEl = document.getElementById('qr-box');
+    // Load URL from localStorage (saved via Project Settings) or use default
+    var savedProj = {};
+    try { savedProj = JSON.parse(localStorage.getItem('elt_proj_cfg')||'{}'); } catch(e){}
+    var qrURL = savedProj.url || 'https://engineeringserviceaveraunitis-ux.github.io/KBTG/';
+    window._dashboardURL = qrURL;
+    // Update URL display
+    var urlDisplay = document.getElementById('qr-url-display');
+    if(urlDisplay) urlDisplay.textContent = qrURL;
     if(qrEl && typeof QRCode !== 'undefined'){
       new QRCode(qrEl, {
-        text: 'https://engineeringserviceaveraunitis-ux.github.io/KBTG/',
+        text: qrURL,
         width: 180,
         height: 180,
         colorDark: '#000000',
