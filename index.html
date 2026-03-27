@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meter Service System — Energy Link Technology</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans+Thai:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0a0e1a;
+  --surface:  #111827;
+  --surface2: #1a2235;
+  --border:   #1e2d45;
+  --accent:   #00c8ff;
+  --green:    #00ff9d;
+  --red:      #ff4757;
+  --purple:   #a78bfa;
+  --orange:   #ff6b35;
+  --text:     #e8f0fe;
+  --muted:    #6b7fa3;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'Noto Sans Thai', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { font-family:var(--sans); background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* grid bg */
+body::before {
+  content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+  background-image:
+    linear-gradient(rgba(0,200,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,.03) 1px, transparent 1px);
+  background-size:40px 40px;
+}
+
+/* ── PAGES ── */
+.page { display:none; min-height:100vh; position:relative; z-index:1; }
+.page.active { display:flex; }
+
+/* ════════════════════════════════
+   LOGIN
+════════════════════════════════ */
+#page-login { align-items:center; justify-content:center; }
+
+.login-wrap {
+  width:100%; max-width:400px; padding:16px;
+}
+
+.login-card {
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-top:2px solid var(--accent);
+  padding:40px 36px;
+  border-radius:4px;
+}
+
+.login-brand {
+  font-family:var(--mono); font-size:10px; letter-spacing:4px;
+  text-transform:uppercase; color:var(--muted); margin-bottom:28px;
+  display:flex; align-items:center; gap:8px;
+}
+.login-brand::before { content:''; width:20px; height:2px; background:var(--accent); flex-shrink:0; }
+
+.login-title { font-size:26px; font-weight:600; line-height:1.15; margin-bottom:6px; }
+.login-title em { color:var(--accent); font-style:normal; }
+.login-sub { font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:36px; }
+
+.lfield { margin-bottom:22px; }
+.lfield label {
+  display:block; font-family:var(--mono); font-size:10px;
+  letter-spacing:2.5px; text-transform:uppercase; color:var(--muted); margin-bottom:8px;
+}
+.lfield input {
+  width:100%; padding:12px 14px;
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--text); font-family:var(--mono); font-size:14px;
+  outline:none; border-radius:2px; transition:border-color .15s;
+  letter-spacing:.5px;
+}
+.lfield input:focus { border-color:var(--accent); }
+
+.btn-login {
+  width:100%; padding:14px;
+  background:var(--accent); color:var(--bg);
+  font-family:var(--mono); font-size:12px; letter-spacing:3px;
+  text-transform:uppercase; border:none; cursor:pointer;
+  font-weight:600; border-radius:2px; transition:opacity .15s;
+}
+.btn-login:hover { opacity:.88; }
+
+.login-err {
+  margin-top:12px; text-align:center;
+  font-family:var(--mono); font-size:11px; color:var(--red); display:none;
+}
+
+/* ════════════════════════════════
+   MAIN LAYOUT
+════════════════════════════════ */
+#page-main { flex-direction:column; }
+
+/* topbar */
+.topbar {
+  background:var(--surface); border-bottom:1px solid var(--border);
+  height:54px; padding:0 24px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:100;
+}
+
+.topbar-brand {
+  font-family:var(--mono); font-size:12px; letter-spacing:3px;
+  text-transform:uppercase; display:flex; align-items:center; gap:8px;
+}
+.topbar-brand .accent { color:var(--accent); }
+
+.topbar-nav { display:flex; gap:2px; }
+.nav-btn {
+  padding:7px 16px; font-family:var(--mono); font-size:10px;
+  letter-spacing:1.5px; text-transform:uppercase;
+  background:none; border:1px solid transparent;
+  color:var(--muted); cursor:pointer; border-radius:2px; transition:all .15s;
+}
+.nav-btn:hover { color:var(--text); border-color:var(--border); }
+.nav-btn.active { color:var(--accent); border-color:var(--accent); background:rgba(0,200,255,.06); }
+
+.topbar-right { display:flex; align-items:center; gap:10px; font-family:var(--mono); font-size:11px; color:var(--muted); }
+.user-avatar {
+  width:28px; height:28px; border-radius:50%;
+  background:var(--accent); color:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:700;
+}
+.btn-out {
+  padding:5px 12px; background:none; border:1px solid var(--border);
+  font-family:var(--mono); font-size:10px; letter-spacing:1px;
+  text-transform:uppercase; color:var(--muted); cursor:pointer;
+  border-radius:2px; transition:all .15s;
+}
+.btn-out:hover { border-color:var(--red); color:var(--red); }
+
+/* content */
+.content { flex:1; padding:28px 24px; max-width:1140px; width:100%; margin:0 auto; }
+
+.pane { display:none; }
+.pane.active { display:block; }
+
+/* ════════════════════════════════
+   DASHBOARD
+════════════════════════════════ */
+.dash-head {
+  display:flex; justify-content:space-between; align-items:flex-start;
+  margin-bottom:28px; gap:20px; flex-wrap:wrap;
+  padding-bottom:20px; border-bottom:1px solid var(--border);
+}
+.dash-head-left {}
+.dash-badge {
+  display:inline-block; font-family:var(--mono); font-size:9px;
+  letter-spacing:3px; text-transform:uppercase;
+  color:var(--accent); border:1px solid var(--accent);
+  padding:3px 10px; border-radius:2px; margin-bottom:12px;
+}
+.dash-title { font-size:clamp(22px,4vw,34px); font-weight:700; line-height:1.1; }
+.dash-title .hl { color:var(--accent); }
+.dash-sub { font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:6px; }
+
+.dash-head-right { text-align:right; }
+.svc-label { font-family:var(--mono); font-size:10px; color:var(--muted); letter-spacing:1px; margin-bottom:4px; }
+.svc-no { font-family:var(--mono); font-size:18px; font-weight:700; color:var(--accent); }
+.date-label { font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:8px; }
+.date-val { font-family:var(--mono); font-size:13px; color:var(--text); }
+
+/* info chips */
+.info-bar { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px; }
+.chip {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:4px; padding:8px 14px; font-size:12px;
+}
+.chip .cl { font-family:var(--mono); font-size:9px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); margin-bottom:3px; }
+.chip .cv { color:var(--text); font-family:var(--mono); }
+
+/* KPI */
+.kpi-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:24px; }
+.kpi {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:6px; padding:20px; position:relative; overflow:hidden;
+}
+.kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.kpi.k-t::before { background:var(--accent); }
+.kpi.k-o::before { background:var(--green); }
+.kpi.k-f::before { background:var(--red); }
+.kpi.k-l::before { background:var(--purple); }
+
+.kpi-lbl { font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.pulse { width:7px; height:7px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+.kpi-val { font-family:var(--mono); font-size:40px; font-weight:700; line-height:1; }
+.kpi.k-t .kpi-val { color:var(--accent); }
+.kpi.k-o .kpi-val { color:var(--green); }
+.kpi.k-f .kpi-val { color:var(--red); }
+.kpi.k-l .kpi-val { color:var(--purple); }
+.kpi-sub { font-family:var(--mono); font-size:10px; color:var(--muted); margin-top:6px; }
+
+/* rate bar */
+.rate-wrap { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:20px 24px; margin-bottom:28px; }
+.rate-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.rate-lbl { font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:2px; color:var(--muted); }
+.rate-pct { font-family:var(--mono); font-size:20px; font-weight:700; color:var(--green); }
+.rate-bg { height:7px; background:var(--surface2); border-radius:99px; overflow:hidden; }
+.rate-fill { height:100%; background:linear-gradient(90deg,var(--green),var(--accent)); border-radius:99px; transition:width 1.2s cubic-bezier(.23,1,.32,1); }
+
+/* section title */
+.sec-title {
+  font-family:var(--mono); font-size:10px; letter-spacing:3px;
+  text-transform:uppercase; color:var(--muted); margin-bottom:16px;
+  display:flex; align-items:center; gap:12px;
+}
+.sec-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+/* loop grid */
+.loop-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin-bottom:40px; }
+.loop-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:8px; padding:16px; transition:border-color .2s,transform .2s; cursor:default;
+}
+.loop-card:hover { border-color:var(--accent); transform:translateY(-2px); }
+.loop-card.has-off { border-color:rgba(255,71,87,.35); }
+
+.lc-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.lc-name { font-family:var(--mono); font-size:13px; font-weight:700; color:var(--accent); }
+.lc-model { font-family:var(--mono); font-size:9px; color:var(--muted); background:var(--surface2); padding:2px 8px; border-radius:3px; }
+
+.dots { display:flex; gap:3px; flex-wrap:wrap; margin-bottom:10px; }
+.dot { width:10px; height:10px; border-radius:2px; background:var(--green); }
+.dot.off { background:var(--red); }
+
+.lc-stats { display:flex; gap:14px; font-family:var(--mono); font-size:11px; margin-bottom:8px; }
+.lc-stat .ll { font-size:9px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); margin-bottom:2px; }
+.lc-stat .lv { font-weight:700; color:var(--text); }
+.lc-stat .lv.on { color:var(--green); }
+.lc-stat .lv.off-v { color:var(--red); }
+
+.lc-ip { font-family:var(--mono); font-size:9px; color:var(--muted); padding-top:8px; border-top:1px solid var(--border); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+/* ════════════════════════════════
+   DATALOG
+════════════════════════════════ */
+.log-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:20px; }
+.log-title-block .lt { font-size:22px; font-weight:600; }
+.log-title-block .ls { font-family:var(--mono); font-size:11px; color:var(--muted); margin-top:4px; }
+
+.btn-new {
+  padding:11px 20px; background:var(--accent); color:var(--bg);
+  font-family:var(--mono); font-size:11px; letter-spacing:2px;
+  text-transform:uppercase; border:none; cursor:pointer;
+  font-weight:600; border-radius:2px; transition:opacity .15s; white-space:nowrap;
+}
+.btn-new:hover { opacity:.85; }
+
+.filters { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+.f-input, .f-sel {
+  padding:9px 13px; background:var(--surface); border:1px solid var(--border);
+  color:var(--text); font-family:var(--mono); font-size:12px; outline:none;
+  border-radius:2px; transition:border-color .15s;
+}
+.f-input { flex:1; min-width:180px; }
+.f-input:focus, .f-sel:focus { border-color:var(--accent); }
+.f-sel { appearance:none; padding-right:28px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7fa3' d='M5 7L0 2h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; background-color:var(--surface); }
+
+/* log items */
+.log-list { display:flex; flex-direction:column; gap:1px; }
+.log-item {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:4px; padding:16px 18px;
+  display:grid; grid-template-columns:36px 1fr auto;
+  gap:14px; align-items:start;
+  transition:border-color .15s;
+}
+.log-item:hover { border-color:var(--border); }
+
+.log-num { font-family:var(--mono); font-size:10px; color:var(--muted); padding-top:3px; }
+.log-body {}
+
+.log-tag {
+  display:inline-block; font-family:var(--mono); font-size:9px;
+  letter-spacing:1.5px; text-transform:uppercase; padding:2px 8px;
+  border-radius:2px; margin-bottom:6px;
+}
+.tag-replace { background:rgba(239,159,39,.15); color:#f0a030; }
+.tag-inspect { background:rgba(0,200,255,.12); color:var(--accent); }
+.tag-repair  { background:rgba(255,71,87,.12);  color:var(--red); }
+.tag-install { background:rgba(0,255,157,.1);   color:var(--green); }
+.tag-other   { background:rgba(107,127,163,.15); color:var(--muted); }
+
+.log-desc { font-size:14px; font-weight:500; margin-bottom:5px; }
+.log-note { font-size:13px; color:var(--muted); line-height:1.55; margin-bottom:6px; }
+.log-meta { font-family:var(--mono); font-size:10px; color:var(--muted); display:flex; flex-wrap:wrap; gap:12px; }
+.log-time { font-family:var(--mono); font-size:10px; color:var(--muted); white-space:nowrap; padding-top:3px; line-height:1.6; }
+
+.empty {
+  text-align:center; padding:64px 20px;
+  font-family:var(--mono); font-size:11px; color:var(--muted); letter-spacing:1px;
+}
+
+/* ════════════════════════════════
+   MODAL
+════════════════════════════════ */
+.overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.6); z-index:300;
+  align-items:center; justify-content:center; padding:16px;
+}
+.overlay.open { display:flex; }
+
+.modal {
+  background:var(--surface); border:1px solid var(--border);
+  border-top:2px solid var(--accent);
+  width:100%; max-width:520px; padding:30px;
+  border-radius:4px; animation:up .2s ease;
+}
+@keyframes up { from{transform:translateY(14px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.modal-title { font-size:17px; font-weight:600; margin-bottom:3px; }
+.modal-sub { font-family:var(--mono); font-size:11px; color:var(--muted); margin-bottom:22px; }
+
+.mrow { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.mfield { margin-bottom:15px; }
+.mfield label { display:block; font-family:var(--mono); font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+.mfield input, .mfield select, .mfield textarea {
+  width:100%; padding:10px 12px;
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--text); font-family:var(--mono); font-size:13px;
+  outline:none; border-radius:2px; transition:border-color .15s;
+}
+.mfield input:focus, .mfield select:focus, .mfield textarea:focus { border-color:var(--accent); }
+.mfield textarea { resize:vertical; min-height:70px; }
+.mfield select { appearance:none; padding-right:28px; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='%236b7fa3' d='M5 7L0 2h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; background-color:var(--surface2); }
+
+.modal-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:6px; }
+.btn-cancel {
+  padding:10px 18px; background:none; border:1px solid var(--border);
+  font-family:var(--mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--muted); cursor:pointer; border-radius:2px; transition:all .15s;
+}
+.btn-cancel:hover { border-color:var(--text); color:var(--text); }
+.btn-save {
+  padding:10px 22px; background:var(--accent); color:var(--bg);
+  font-family:var(--mono); font-size:10px; letter-spacing:2px; text-transform:uppercase;
+  font-weight:700; border:none; cursor:pointer; border-radius:2px; transition:opacity .15s;
+}
+.btn-save:hover { opacity:.85; }
+
+@media(max-width:580px){
+  .kpi-row { grid-template-columns:1fr 1fr; }
+  .loop-grid { grid-template-columns:1fr 1fr; }
+  .mrow { grid-template-columns:1fr; }
+  .log-item { grid-template-columns:1fr; }
+  .log-num { display:none; }
+  .topbar-nav .nav-btn { padding:7px 10px; }
+}
+
+/* ── METER CHECKLIST ── */
+.meter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:8px}
+.meter-row{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:4px;transition:border-color .15s}
+.meter-row:hover{border-color:var(--accent)}
+.meter-row.is-online{border-left:3px solid var(--green)}
+.meter-row.is-offline{border-left:3px solid var(--red)}
+.meter-chk{width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0}
+.meter-info{flex:1;min-width:0}
+.meter-name{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meter-meta{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.meter-model-sel{padding:4px 8px;background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:10px;border-radius:2px;min-width:90px}
+
+/* ── ADMIN TABS ── */
+.admin-tab {
+  padding:8px 18px; background:none; border:none; border-bottom:2px solid transparent;
+  font-family:var(--mono); font-size:11px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--muted); cursor:pointer; transition:all .15s; margin-bottom:-1px;
+}
+.admin-tab:hover { color:var(--text); }
+.admin-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.user-table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:4px; overflow:auto; }
+.user-table { width:100%; border-collapse:collapse; font-family:var(--mono); font-size:12px; }
+.user-table thead th { padding:10px 16px; font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--muted); border-bottom:1px solid var(--border); background:var(--surface2); text-align:left; }
+.user-table tbody td { padding:12px 16px; border-bottom:1px solid var(--surface2); }
+.user-table tbody tr:last-child td { border-bottom:none; }
+.role-badge { display:inline-block; font-size:9px; letter-spacing:1px; text-transform:uppercase; padding:2px 8px; border-radius:2px; }
+.role-admin   { background:rgba(0,200,255,.12); color:var(--accent); }
+.role-service { background:rgba(0,255,157,.1);  color:var(--green); }
+.role-user    { background:rgba(107,127,163,.15); color:var(--muted); }
+.btn-del { background:none; border:1px solid rgba(255,71,87,.3); color:var(--red); font-family:var(--mono); font-size:10px; padding:4px 10px; cursor:pointer; border-radius:2px; transition:all .15s; }
+.btn-del:hover { background:rgba(255,71,87,.1); }
+
+/* ── EDIT BUTTON in log ── */
+.btn-edit { background:none; border:1px solid var(--border); color:var(--muted); font-family:var(--mono); font-size:9px; letter-spacing:1px; padding:3px 10px; cursor:pointer; border-radius:2px; transition:all .15s; margin-top:8px; }
+.btn-edit:hover { border-color:var(--accent); color:var(--accent); }
+
+/* ── COMBOBOX (type + suggest) ── */
+.combo-wrap { position:relative; display:inline-block; }
+.combo-wrap input.combo-inp {
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--text); border-radius:3px; padding:4px 8px;
+  font-family:var(--mono); font-size:12px; width:140px; cursor:text;
+}
+.combo-wrap input.combo-inp:focus { outline:none; border-color:var(--accent); }
+.combo-list {
+  display:none; position:absolute; top:100%; left:0; z-index:9999;
+  background:var(--surface); border:1px solid var(--accent);
+  border-radius:3px; max-height:200px; overflow-y:auto;
+  min-width:160px; box-shadow:0 4px 12px rgba(0,0,0,.4);
+}
+.combo-list.open { display:block; }
+.combo-item {
+  padding:6px 10px; font-family:var(--mono); font-size:12px;
+  color:var(--text); cursor:pointer;
+}
+.combo-item:hover, .combo-item.active { background:var(--accent); color:#000; }
+
+</style>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, orderBy, query, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ══════════════════════════════════════════════
+// 🔧 FIREBASE CONFIG — KBTG
+// ══════════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyDmM9NP-E575hHnZY-u7CuvFom-_bzgO2A",
+  authDomain: "kbtg-def8b.firebaseapp.com",
+  projectId: "kbtg-def8b",
+  storageBucket: "kbtg-def8b.firebasestorage.app",
+  messagingSenderId: "966954632668",
+  appId: "1:966954632668:web:60e865b3d4301c5ceebb19"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+window._db = db;
+window._fsAPI = { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, orderBy, query, serverTimestamp };
+window._firebaseReady = true;
+</script>
+</head>
+<body>
+
+
+
+<!-- ══ LOGIN ══ -->
+<div class="page active" id="page-login">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand">ENERGY LINK TECHNOLOGY <em style="color:var(--accent)">│</em> THAILAND</div>
+      <div class="login-title">เข้าสู่ระบบ<br><em>Service Log</em></div>
+      <div class="login-sub">Meter Service Datalog System</div>
+      <div class="lfield">
+        <label>Username</label>
+        <input type="text" id="inp-u" placeholder="User Name" autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <div class="lfield">
+        <label>Password</label>
+        <input type="password" id="inp-p" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="btn-login" onclick="doLogin()">เข้าสู่ระบบ →</button>
+      <div class="login-err" id="lerr">Username หรือ Password ไม่ถูกต้อง</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<div class="page" id="page-main">
+
+  <div class="topbar">
+    <div class="topbar-brand">Energy Link <span class="accent">│</span> Meter System</div>
+    <div class="topbar-nav">
+      <button class="nav-btn active" onclick="switchTab('dash',this)">Dashboard</button>
+      <button class="nav-btn" id="btn-project" onclick="switchTab('project',this)" style="display:none">Project Settings</button>
+      <button class="nav-btn" id="btn-log" onclick="switchTab('log',this)" style="display:none">Datalog</button>
+      <button class="nav-btn" id="btn-admin" onclick="switchTab('admin',this)" style="display:none">Admin</button>
+    </div>
+    <div class="topbar-right">
+      <div class="user-avatar" id="u-av">S</div>
+      <span id="u-name">Service</span>
+      <button class="btn-out" onclick="doLogout()">ออก</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="pane active" id="pane-dash">
+
+      <div class="dash-head">
+        <div class="dash-head-left">
+          <div class="dash-badge">Maintenance Agreement Report</div>
+          <div class="dash-title">Kasikorn Thai Bank <span class="hl">KBTG</span></div>
+          <div class="dash-sub">Digital Meter Monitoring Dashboard</div>
+        </div>
+        <div class="dash-head-right">
+          <div class="svc-label">SERVICE NO.</div>
+          <div class="svc-no" id="dash-svcno">—</div>
+          <div class="date-label">วันที่ Service ล่าสุด</div>
+          <div class="date-val" id="dash-date">—</div>
+        </div>
+      </div>
+
+      <div class="info-bar">
+        <div class="chip"><div class="cl">Project</div><div class="cv" id="chip-proj-name">Kasikorn Thai Bank (KBTG)</div></div>
+        <div class="chip"><div class="cl">System</div><div class="cv" id="chip-system-name">Retail Management System (RMS)</div></div>
+        <div class="chip"><div class="cl">Tested by</div><div class="cv">Energy Link Technology (Thailand)</div></div>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi k-t"><div class="kpi-lbl">Total Meters</div><div class="kpi-val">—</div><div class="kpi-sub">ทั้งโครงการ</div></div>
+        <div class="kpi k-o"><div class="kpi-lbl"><span class="pulse"></span>Online</div><div class="kpi-val">—</div><div class="kpi-sub">เชื่อมต่อแล้ว</div></div>
+        <div class="kpi k-f"><div class="kpi-lbl">Offline</div><div class="kpi-val">—</div><div class="kpi-sub">ไม่มีสัญญาณ</div></div>
+        <div class="kpi k-l"><div class="kpi-lbl">Loops</div><div class="kpi-val">—</div><div class="kpi-sub">วงจรทั้งหมด</div></div>
+      </div>
+
+      <div class="rate-wrap">
+        <div class="rate-top">
+          <div class="rate-lbl">อัตราการเชื่อมต่อ (Online Rate)</div>
+          <div class="rate-pct">—</div>
+        </div>
+        <div class="rate-bg"><div class="rate-fill" id="rbar" style="width:0%"></div></div>
+      </div>
+
+      <!-- METER MODEL SUMMARY -->
+      <div class="sec-title">รุ่นมิเตอร์ที่ใช้งาน</div>
+      <div id="model-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:28px"></div>
+      <div class="sec-title" id="loop-summary-title">Loop Summary — 19 Loops</div>
+      <div class="loop-grid" id="loop-grid"></div>
+
+      <!-- QR CODE SECTION -->
+      <div class="sec-title">QR Code — สแกนเพื่อเปิด Dashboard</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:24px;display:flex;flex-wrap:wrap;gap:28px;align-items:center;margin-bottom:32px">
+        <div style="flex-shrink:0;background:#fff;padding:12px;border-radius:6px" id="qr-box"></div>
+        <div style="flex:1;min-width:200px">
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Dashboard URL</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--accent);word-break:break-all;background:var(--surface2);padding:10px 14px;border-radius:4px;border:1px solid var(--border)">https://engineeringserviceaveraunitis-ux.github.io/Oakwood-Suites-Bangkok/</div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:12px;line-height:1.7">
+            สแกน QR Code ด้วยกล้องมือถือ<br>เพื่อเปิดหน้า Dashboard ได้ทันที
+          </div>
+          <button onclick="window.print()" style="margin-top:14px;padding:9px 18px;background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">🖨 พิมพ์ QR Code</button>
+        </div>
+      </div>
+
+    </div><!-- /pane-dash -->
+
+    <!-- ── DATALOG ── -->
+    <div class="pane" id="pane-log">
+      <div class="log-head">
+        <div class="log-title-block">
+          <div class="lt">Datalog — Service Record</div>
+          <div class="ls">บันทึกประวัติการเข้ามาทำงานของผู้ตรวจสอบแต่ละครั้ง</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-new" style="background:var(--surface);color:var(--green);border:1px solid var(--green)" onclick="exportCSV()">↓ Export CSV</button>
+          <button class="btn-new" onclick="openModal()">+ บันทึก Service ใหม่</button>
+        </div>
+      </div>
+
+      <div id="log-wrap"><div class="empty">ยังไม่มีรายการ — กด "+ บันทึก Service ใหม่" เพื่อเริ่มต้น</div></div>
+
+      <div class="filters">
+        <input class="f-input" type="text" id="f-q" placeholder="ค้นหา Loop / มิเตอร์ / รายละเอียด..." oninput="renderLogs()">
+        <select class="f-sel" id="f-t" onchange="renderLogs()">
+          <option value="">ทุกประเภท</option>
+          <option value="replace">เปลี่ยนอุปกรณ์</option>
+          <option value="inspect">ตรวจสอบ</option>
+          <option value="repair">ซ่อม</option>
+          <option value="install">ติดตั้งใหม่</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+
+      <!-- Project Settings for Service role -->
+    </div>
+
+    <!-- ── ADMIN ── -->
+    <div class="pane" id="pane-admin">
+      <!-- Admin sub-tabs -->
+      <div style="display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:0">
+        <button class="admin-tab active" id="atab-users" onclick="switchAdminTab('users',this)">จัดการ User</button>
+        <button class="admin-tab" id="atab-project" onclick="switchAdminTab('project',this)">Project Settings</button>
+      </div>
+
+      <!-- User Management -->
+      <div id="admin-users">
+        <div class="log-head">
+          <div class="log-title-block">
+            <div class="lt">Admin — จัดการ User</div>
+            <div class="ls">เพิ่ม / ลบ ผู้ใช้งานในระบบ (เก็บบน browser นี้)</div>
+          </div>
+          <button class="btn-new" onclick="openUserModal()">+ เพิ่ม User ใหม่</button>
+        </div>
+        <div id="user-list-wrap"></div>
+      </div>
+
+      <!-- Project Settings -->
+      <div id="admin-project" style="display:none">
+      <div id="log-ps-area" style="display:block;margin-top:0;border-top:none;padding-top:0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:18px;font-weight:600">Project Settings</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px">แก้ไขสถานะมิเตอร์แต่ละ Loop และข้อมูล Dashboard</div>
+          </div>
+          <button class="btn-new" onclick="saveProjectSettings()">💾 บันทึกทั้งหมด</button>
+        </div>
+
+        <!-- Basic Info -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+          <div class="mfield"><label>ชื่อโครงการ</label><input type="text" id="ps-name" placeholder="ชื่อโครงการ"></div>
+          <input type="hidden" id="ps-name-hl">
+          <div class="mfield"><label>ระบบ (System)</label><input type="text" id="ps-system" placeholder="Retail Management System (RMS)"></div>
+          <div class="mfield"><label>Protocol</label><input type="text" id="ps-protocol" placeholder="เช่น RS-485"></div>
+          <div class="mfield"><label>Baud Rate</label>
+            <select id="ps-baudrate" style="width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:8px 10px;font-family:var(--mono);font-size:12px">
+              <option value="9600">9600</option>
+              <option value="19200">19200</option>
+              <option value="38400">38400</option>
+              <option value="57600">57600</option>
+              <option value="115200">115200</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Loop Selector -->
+        <div class="sec-title" style="margin-bottom:14px">สถานะมิเตอร์แต่ละ Loop</div>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+          <div class="mfield" style="margin:0;flex:0 0 auto">
+            <label>เลือก Loop</label>
+            <select id="ps-loop-sel" onchange="renderMeterChecklist()" style="min-width:180px">
+              <option value="">-- เลือก Loop --</option>
+            </select>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);padding-top:18px">
+            ติ๊ก = <span style="color:var(--green)">Online</span> / ไม่ติ๊ก = <span style="color:var(--red)">Offline</span>
+          </div>
+          <button onclick="setAllOnline(true)" style="margin-top:18px;padding:6px 14px;background:rgba(0,255,157,.1);border:1px solid var(--green);color:var(--green);font-family:var(--mono);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px">✓ All Online</button>
+          <button onclick="setAllOnline(false)" style="margin-top:18px;padding:6px 14px;background:rgba(255,71,87,.1);border:1px solid var(--red);color:var(--red);font-family:var(--mono);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px">✗ All Offline</button>
+          <button onclick="openAddLoopModal()" style="margin-top:18px;padding:6px 14px;background:rgba(0,200,255,.1);border:1px solid var(--accent);color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px">+ เพิ่ม Loop ใหม่</button>
+          <button onclick="openAddMeterModal()" style="margin-top:18px;padding:6px 14px;background:rgba(167,139,250,.1);border:1px solid var(--purple);color:var(--purple);font-family:var(--mono);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px">+ เพิ่ม Meter ใน Loop</button>
+          <button onclick="confirmDeleteLoop()" style="margin-top:18px;padding:6px 14px;background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.4);color:var(--red);font-family:var(--mono);font-size:10px;letter-spacing:1px;cursor:pointer;border-radius:2px">🗑 ลบ Loop นี้</button>
+        </div>
+
+        <!-- Gateway Info (IP/MAC) — Loop level -->
+        <div id="ps-gateway-row" style="display:none;margin-bottom:16px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px 16px">
+          <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:10px;text-transform:uppercase">Gateway / Controller ของ Loop นี้</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="mfield" style="margin-bottom:0">
+              <label>IP Address (Gateway)</label>
+              <input type="text" id="ps-gw-ip" placeholder="เช่น 192.168.0.1" oninput="updateLoopGateway()">
+            </div>
+            <div class="mfield" style="margin-bottom:0">
+              <label>MAC Address (Gateway)</label>
+              <input type="text" id="ps-gw-mac" placeholder="เช่น 00:26:45:00:FD:95" oninput="updateLoopGateway()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Meter Checklist -->
+        <div id="ps-meter-list" style="margin-bottom:12px"></div>
+
+        <!-- Meter Detail Panel -->
+        <div id="ps-meter-detail" style="display:none;margin-bottom:20px;background:var(--surface2);border:1px solid var(--accent);border-radius:6px;padding:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--accent)" id="md-title">รายละเอียดมิเตอร์</div>
+            <div style="display:flex;gap:8px">
+              <button onclick="saveMeterDetail()" style="padding:6px 16px;background:var(--accent);color:var(--bg);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;border:none;cursor:pointer;border-radius:2px">บันทึก</button>
+              <button onclick="closeMeterDetail()" style="padding:6px 12px;background:none;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;border-radius:2px">✕</button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div class="mfield" style="margin-bottom:0"><label>ชื่อมิเตอร์</label><input type="text" id="md-name" placeholder="เช่น Room 901"></div>
+            <div class="mfield" style="margin-bottom:0"><label>Serial Number</label><input type="text" id="md-serial" placeholder="เช่น 1177340118"></div>
+            <div class="mfield" style="margin-bottom:0">
+              <label>รุ่นมิเตอร์ (Model)</label>
+              <span class="combo-wrap">
+              <input type="text" class="combo-inp" id="md-model" placeholder="พิมพ์รุ่น..." autocomplete="off">
+              <div class="combo-list"><div class="combo-item" data-val="CVM-C5">CVM-C5</div>
+<div class="combo-item" data-val="CVM-C6">CVM-C6</div>
+<div class="combo-item" data-val="CVM-C10">CVM-C10</div>
+<div class="combo-item" data-val="CVM-C11">CVM-C11</div>
+<div class="combo-item" data-val="CVM-C12c">CVM-C12c</div>
+<div class="combo-item" data-val="CVM-C30">CVM-C30</div>
+<div class="combo-item" data-val="CVM-C31">CVM-C31</div>
+<div class="combo-item" data-val="CVM-B100">CVM-B100</div>
+<div class="combo-item" data-val="CVM-B150">CVM-B150</div>
+<div class="combo-item" data-val="CVM-A1500">CVM-A1500</div>
+<div class="combo-item" data-val="CVMk2">CVMk2</div>
+<div class="combo-item" data-val="CVM-NRG96">CVM-NRG96</div>
+<div class="combo-item" data-val="CEM-C6">CEM-C6</div>
+<div class="combo-item" data-val="CEM-C10">CEM-C10</div>
+<div class="combo-item" data-val="CEM-C30">CEM-C30</div>
+<div class="combo-item" data-val="CEM-C31">CEM-C31</div>
+<div class="combo-item" data-val="MK-LCD">MK-LCD</div>
+<div class="combo-item" data-val="EDMk">EDMk</div>
+<div class="combo-item" data-val="Other">Other</div></div>
+            </span>
+            </div>
+            <div class="mfield" style="margin-bottom:0"><label>Address (Modbus)</label><input type="number" id="md-addr" placeholder="เช่น 1"></div>
+            <div class="mfield" style="margin-bottom:0"><label>ขนาด C.T. (Ratio)</label><input type="text" id="md-ct" placeholder="เช่น 100/5, 3000"></div>
+            <div class="mfield" style="margin-bottom:0"><label>หมายเหตุ</label><input type="text" id="md-note" placeholder="หมายเหตุเพิ่มเติม"></div>
+          </div>
+          <input type="hidden" id="md-loop"><input type="hidden" id="md-no">
+          <div id="md-saved" style="font-family:var(--mono);font-size:11px;color:var(--green);margin-top:10px;display:none">✓ บันทึกแล้ว</div>
+        </div>
+
+        <!-- Loop summary -->
+        <div id="ps-loop-summary" style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:20px;padding:10px 14px;background:var(--surface2);border-radius:4px;display:none"></div>
+
+
+        <div id="ps-status" style="font-family:var(--mono);font-size:12px;color:var(--green);display:none;margin-top:8px">✓ บันทึกสำเร็จ — Dashboard จะอัปเดตทันที</div>
+      </div>
+
+      </div>
+
+  </div>
+</div>
+
+<!-- ══ MODAL: EDIT LOG ══ -->
+<div class="overlay" id="overlay-edit">
+  <div class="modal">
+    <div class="modal-title">แก้ไข Service Log</div>
+    <div class="modal-sub">แก้ไขข้อมูลรายการที่บันทึกไว้</div>
+    <input type="hidden" id="e-id">
+    <div class="mrow">
+      <div class="mfield">
+        <label>Loop</label>
+        <select id="e-loop"></select>
+      </div>
+      <div class="mfield">
+        <label>ประเภทงาน</label>
+        <select id="e-type">
+          <option value="replace">เปลี่ยนอุปกรณ์</option>
+          <option value="inspect">ตรวจสอบ</option>
+          <option value="repair">ซ่อม</option>
+          <option value="install">ติดตั้งใหม่</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+    </div>
+    <div class="mfield">
+      <label>ชื่อ / เลขมิเตอร์ที่ดำเนินการ</label>
+      <input type="text" id="e-meter">
+    </div>
+    <div class="mrow">
+      <div class="mfield">
+        <label>Serial เดิม</label>
+        <input type="text" id="e-sold">
+      </div>
+      <div class="mfield">
+        <label>Serial ใหม่</label>
+        <input type="text" id="e-snew">
+      </div>
+    </div>
+    <div class="mfield">
+      <label>รายละเอียดงาน</label>
+      <textarea id="e-detail"></textarea>
+    </div>
+    <div class="mfield">
+      <label>ผู้ตรวจสอบ</label>
+      <input type="text" id="e-tech">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" style="color:var(--red);border-color:rgba(255,71,87,.4)" onclick="deleteLog()">ลบรายการ</button>
+      <button class="btn-cancel" onclick="closeEditModal()">ยกเลิก</button>
+      <button class="btn-save" onclick="updateLog()">บันทึกการแก้ไข →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD USER ══ -->
+<div class="overlay" id="overlay-user">
+  <div class="modal">
+    <div class="modal-title">เพิ่ม User ใหม่</div>
+    <div class="modal-sub">กำหนด Username และ Password สำหรับผู้ใช้งานใหม่</div>
+    <div class="mfield">
+      <label>Username</label>
+      <input type="text" id="nu-user" placeholder="ชื่อผู้ใช้ (ภาษาอังกฤษ)">
+    </div>
+    <div class="mfield">
+      <label>Password</label>
+      <input type="password" id="nu-pass" placeholder="รหัสผ่าน">
+    </div>
+    <div class="mfield">
+      <label>Role</label>
+      <select id="nu-role">
+        <option value="user">User — เห็นเฉพาะ Dashboard</option>
+        <option value="service">Service — Dashboard + Datalog + Project Settings</option>
+        <option value="admin">Admin — เห็นทั้งหมด + จัดการ User</option>
+      </select>
+    </div>
+    <div id="nu-err" style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:10px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeUserModal()">ยกเลิก</button>
+      <button class="btn-save" onclick="saveUser()">เพิ่ม User →</button>
+    </div>
+  </div>
+</div>
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-title">บันทึก Service ใหม่</div>
+    <div class="modal-sub">Kasikorn Thai Bank (KBTG) · <span id="m-dt"></span></div>
+
+    <div class="mrow">
+      <div class="mfield">
+        <label>Loop</label>
+        <select id="f-loop"></select>
+      </div>
+      <div class="mfield">
+        <label>ประเภทงาน</label>
+        <select id="f-type">
+          <option value="replace">เปลี่ยนอุปกรณ์</option>
+          <option value="inspect">ตรวจสอบ</option>
+          <option value="repair">ซ่อม</option>
+          <option value="install">ติดตั้งใหม่</option>
+          <option value="other">อื่นๆ</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="mfield">
+      <label>Service No.</label>
+      <input type="text" id="f-svcno" placeholder="เช่น SER.6805003">
+    </div>
+
+    <!-- Serial เดิม → ค้นหาชื่อมิเตอร์อัตโนมัติ -->
+    <div class="mrow">
+      <div class="mfield">
+        <label>Serial เดิม <span style="color:var(--accent)">— พิมพ์เพื่อค้นหามิเตอร์</span></label>
+        <input type="text" id="f-sold" placeholder="กรอก Serial เดิม แล้วระบบจะหาชื่อมิเตอร์ให้"
+          oninput="lookupMeterBySerial(this.value)">
+        <div id="f-lookup-result" style="font-family:var(--mono);font-size:11px;margin-top:6px;padding:6px 10px;border-radius:3px;display:none"></div>
+      </div>
+      <div class="mfield">
+        <label>Serial ใหม่ (ถ้าเปลี่ยน)</label>
+        <input type="text" id="f-snew" placeholder="Serial ใหม่">
+      </div>
+    </div>
+
+    <div class="mfield">
+      <label>ชื่อมิเตอร์ที่ดำเนินการ <span style="font-size:10px;color:var(--muted)">(auto-fill จาก Serial)</span></label>
+      <input type="text" id="f-meter" placeholder="จะแสดงอัตโนมัติเมื่อพบ Serial หรือกรอกเอง">
+    </div>
+
+    <!-- แสดงเฉพาะเมื่อประเภท = เปลี่ยนอุปกรณ์ -->
+    <div id="f-replace-fields" style="display:none">
+      <div class="mrow">
+        <div class="mfield">
+          <label>รุ่นใหม่ (Model)</label>
+          <span class="combo-wrap">
+              <input type="text" class="combo-inp" id="f-new-model" placeholder="พิมพ์รุ่นใหม่..." autocomplete="off">
+              <div class="combo-list">
+                <div class="combo-item" data-val="">เดิม (ไม่เปลี่ยน)</div>
+                <div class="combo-item" data-val="CVM-C5">CVM-C5</div>
+<div class="combo-item" data-val="CVM-C6">CVM-C6</div>
+<div class="combo-item" data-val="CVM-C10">CVM-C10</div>
+<div class="combo-item" data-val="CVM-C11">CVM-C11</div>
+<div class="combo-item" data-val="CVM-C12c">CVM-C12c</div>
+<div class="combo-item" data-val="CVM-C30">CVM-C30</div>
+<div class="combo-item" data-val="CVM-C31">CVM-C31</div>
+<div class="combo-item" data-val="CVM-B100">CVM-B100</div>
+<div class="combo-item" data-val="CVM-B150">CVM-B150</div>
+<div class="combo-item" data-val="CVM-A1500">CVM-A1500</div>
+<div class="combo-item" data-val="CVMk2">CVMk2</div>
+<div class="combo-item" data-val="CVM-NRG96">CVM-NRG96</div>
+<div class="combo-item" data-val="CEM-C6">CEM-C6</div>
+<div class="combo-item" data-val="CEM-C10">CEM-C10</div>
+<div class="combo-item" data-val="CEM-C30">CEM-C30</div>
+<div class="combo-item" data-val="CEM-C31">CEM-C31</div>
+<div class="combo-item" data-val="MK-LCD">MK-LCD</div>
+<div class="combo-item" data-val="EDMk">EDMk</div>
+<div class="combo-item" data-val="Other">Other</div>
+              </div>
+            </span>
+        </div>
+        <div class="mfield">
+          <label>สถานะหลังเปลี่ยน</label>
+          <select id="f-new-status">
+            <option value="online">Online ✓</option>
+            <option value="offline">Offline ✗</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="mfield">
+      <label>รายละเอียดงาน</label>
+      <textarea id="f-detail" placeholder="อธิบายงานที่ทำ เช่น เปลี่ยนอุปกรณ์เนื่องจากหน้าจอแสดงผลผิดปกติ..."></textarea>
+    </div>
+
+    <div class="mfield">
+      <label>ผู้ตรวจสอบ</label>
+      <input type="text" id="f-tech" placeholder="ชื่อผู้ตรวจสอบ">
+    </div>
+
+    <div class="mfield">
+      <label>รูปภาพประกอบ (ไม่บังคับ)</label>
+      <input type="file" id="f-img" accept="image/*" multiple style="width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:12px;border-radius:2px;cursor:pointer">
+      <div id="f-img-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">ยกเลิก</button>
+      <button class="btn-save" onclick="saveLog()">บันทึก →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── TABS (stub — replaced after Firebase loads) ── */
+window.switchTab = function(tab, btn){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-'+tab).classList.add('active');
+  if(tab==='log'){
+    const wrap = document.getElementById('log-wrap');
+    if(wrap && !wrap.innerHTML.trim()) wrap.innerHTML='<div class="empty">กำลังเชื่อมต่อ Firebase...</div>';
+  }
+};
+window.openUserModal   = function(){ document.getElementById('overlay-user').classList.add('open'); };
+window.closeUserModal  = function(){ document.getElementById('overlay-user').classList.remove('open'); };
+window.openEditModal   = function(){ document.getElementById('overlay-edit').classList.add('open'); };
+window.closeEditModal  = function(){ document.getElementById('overlay-edit').classList.remove('open'); };
+window.doLogin = function(){
+  const btn = document.querySelector('.btn-login');
+  if(btn){ btn.textContent='กำลังโหลด...'; btn.disabled=true; }
+  // Retry every 200ms until Firebase is ready (max 10s)
+  let tries = 0;
+  const wait = setInterval(()=>{
+    tries++;
+    if(window._firebaseReady){
+      clearInterval(wait);
+      if(btn){ btn.textContent='เข้าสู่ระบบ →'; btn.disabled=false; }
+      window._doLoginReal();
+    } else if(tries > 50){
+      clearInterval(wait);
+      if(btn){ btn.textContent='เข้าสู่ระบบ →'; btn.disabled=false; }
+      alert('ไม่สามารถเชื่อมต่อ Firebase ได้ กรุณารีเฟรชหน้าและลองใหม่');
+    }
+  }, 200);
+};
+window.doLogout        = function(){ location.reload(); };
+window.saveLog         = function(){ alert('กำลังโหลด Firebase...'); };
+window.updateLog       = function(){ alert('กำลังโหลด Firebase...'); };
+window.deleteLog       = function(){ alert('กำลังโหลด Firebase...'); };
+window.saveUser        = function(){ alert('กำลังโหลด Firebase...'); };
+window.deleteUser      = function(){ alert('กำลังโหลด Firebase...'); };
+window.exportCSV       = function(){ alert('กำลังโหลด Firebase...'); };
+window.renderLogs      = function(){};
+
+/* ── FIREBASE via dynamic import ── */
+(async () => {
+  // Wait for Firebase to be ready (loaded via module script)
+  let tries = 0;
+  while(!window._db && tries < 100) {
+    await new Promise(r => setTimeout(r, 100));
+    tries++;
+  }
+  if(!window._db) { console.error('Firebase load timeout'); return; }
+  
+  const db = window._db;
+  const { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, orderBy, query, serverTimestamp } = window._fsAPI;
+
+
+// Signal that Firebase is ready
+window._firebaseReady = true;
+
+/* ── USERS ── */
+const DEFAULT_USERS = {
+  'User':    { pass:'View1234',  role:'user'    },
+  'Service': { pass:'Enl1234',  role:'service' },
+  'Admin':   { pass:'Elt@2568', role:'admin'   },
+};
+function loadUsers(){ return Object.assign({}, DEFAULT_USERS, JSON.parse(localStorage.getItem('avera_users')||'{}')); }
+function saveUsers(u){ localStorage.setItem('avera_users', JSON.stringify(u)); }
+
+const LOOPS = [{"n": 1, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 2, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 3, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 4, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 5, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 6, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 7, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 8, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 9, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 10, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 11, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 12, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 13, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 14, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 15, "t": 24, "on": 24, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 16, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 17, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 18, "t": 25, "on": 25, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}, {"n": 19, "t": 10, "on": 10, "off": 0, "m": "CVM-C10", "ip": "-", "mac": "-"}];
+
+const TLABEL = {replace:'เปลี่ยนอุปกรณ์',inspect:'ตรวจสอบ',repair:'ซ่อม',install:'ติดตั้งใหม่',other:'อื่นๆ'};
+const TCLASS  = {replace:'tag-replace',inspect:'tag-inspect',repair:'tag-repair',install:'tag-install',other:'tag-other'};
+
+let currentUser = null, currentRole = null, logs = [];
+const COLL = 'service_logs';
+
+/* ── FIRESTORE ── */
+async function fsLoadLogs(){
+  showLoading(true);
+  try {
+    const q = query(collection(db, COLL), orderBy('ts','desc'));
+    const snap = await getDocs(q);
+    logs = snap.docs.map(d=>({...d.data(), _id:d.id, ts:d.data().ts?.toDate?.()?.toISOString()||d.data().ts}));
+    renderLogs(); updateDashInfo();
+  } catch(e){
+    const isPermission = e.message.includes('permission') || e.message.includes('permissions');
+    const wrap = document.getElementById('log-wrap');
+    if(wrap){
+      wrap.innerHTML=`<div class="empty" style="color:var(--red)">
+        ${isPermission
+          ? '⚠ Firestore Rules ยังไม่อนุญาต — กรุณาแก้ Rules ใน Firebase Console ให้เป็น allow read, write: if true; แล้วกด Publish'
+          : 'Firestore error: '+e.message}
+      </div>`;
+    }
+  }
+  showLoading(false);
+}
+async function fsSaveLog(e){ return await addDoc(collection(db,COLL),{...e,ts:serverTimestamp()}); }
+async function fsUpdateLog(id,d){ await updateDoc(doc(db,COLL,id),{...d,edited:serverTimestamp()}); }
+async function fsDeleteLog(id){ await deleteDoc(doc(db,COLL,id)); }
+function showLoading(on){
+  const wrap = document.getElementById('log-wrap');
+  if(on && wrap) wrap.innerHTML = '<div class="empty">กำลังโหลด...</div>';
+}
+
+function updateDashInfo(){
+  const latest = logs.find(l=>l.svcno)||logs[0];
+  if(!latest) return;
+  if(latest.svcno) document.getElementById('dash-svcno').textContent = latest.svcno;
+  if(latest.ts){ const d=new Date(latest.ts); if(!isNaN(d)){ document.getElementById('dash-date').textContent=d.toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'})+' '+d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'}); } }
+}
+
+/* ── AUTH ── */
+window._doLoginReal = function(){
+  const u=document.getElementById('inp-u').value.trim(), p=document.getElementById('inp-p').value;
+  const users=loadUsers();
+  if(users[u]&&users[u].pass===p){
+    currentUser=u; currentRole=users[u].role;
+    document.getElementById('lerr').style.display='none';
+    document.getElementById('u-name').textContent=u;
+    document.getElementById('u-av').textContent=u[0].toUpperCase();
+    const isService = currentRole==='service' || currentRole==='admin';
+    const isAdmin   = currentRole==='admin';
+    document.getElementById('btn-log').style.display     = isService ? '' : 'none';
+    document.getElementById('btn-project').style.display = 'none';
+    document.getElementById('btn-admin').style.display   = isService ? '' : 'none';
+    document.getElementById('page-login').classList.remove('active');
+    document.getElementById('page-main').classList.add('active');
+    initMain();
+  } else { document.getElementById('lerr').style.display='block'; document.getElementById('inp-p').value=''; }
+};
+// Also override the stub so Enter key works after Firebase loads
+window.doLogin = window._doLoginReal;
+
+window.doLogout = function(){
+  currentUser=null; currentRole=null;
+  document.getElementById('page-main').classList.remove('active');
+  document.getElementById('page-login').classList.add('active');
+  document.getElementById('inp-u').value='';
+  document.getElementById('inp-p').value='';
+  document.getElementById('lerr').style.display='none';
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===0));
+  document.querySelectorAll('.pane').forEach((p,i)=>p.classList.toggle('active',i===0));
+};
+
+
+/* ── RENDER MODEL CARDS (dynamic from METER_DATA) ── */
+function renderModelCards(){
+  const modelMeta = {
+    'CVM-C5'   : { color:'var(--accent)',  brand:'Circutor' },
+    'CVM-C6'   : { color:'var(--accent)',  brand:'Circutor' },
+    'CVM-C10'  : { color:'var(--accent)',  brand:'Circutor' },
+    'CVM-C11'  : { color:'var(--accent)',  brand:'Circutor' },
+    'CVM-C12c' : { color:'var(--accent)',  brand:'Circutor' },
+    'CVM-C30'  : { color:'var(--accent)',  brand:'Circutor' },
+    'CVM-C31'  : { color:'var(--accent)',  brand:'Circutor' },
+    'CVM-B100' : { color:'var(--purple)',  brand:'Circutor' },
+    'CVM-B150' : { color:'var(--purple)',  brand:'Circutor' },
+    'CVM-A1500': { color:'var(--purple)',  brand:'Circutor' },
+    'CVMk2'    : { color:'var(--orange)',  brand:'Circutor' },
+    'CVM-NRG96': { color:'var(--orange)',  brand:'Circutor' },
+    'CEM-C6'   : { color:'var(--accent)',  brand:'Circutor' },
+    'CEM-C10'  : { color:'var(--accent)',  brand:'Circutor' },
+    'CEM-C30'  : { color:'var(--accent)',  brand:'Circutor' },
+    'CEM-C31'  : { color:'var(--accent)',  brand:'Circutor' },
+    'MK-LCD'   : { color:'var(--green)',   brand:'Multilin' },
+    'EDMk'     : { color:'var(--green)',   brand:'Multilin' },
+  };
+  // Count models from METER_DATA
+  const counts = {};
+  Object.values(activeMeterData||METER_DATA).forEach(loop=>{
+    (loop.meters||[]).forEach(m=>{
+      const model = m.model||'Unknown';
+      counts[model] = (counts[model]||0) + 1;
+    });
+  });
+  // Count loops
+  const totalLoops = Object.keys(activeMeterData||METER_DATA).length;
+
+  const grid = document.getElementById('model-cards-grid');
+  if(!grid) return;
+
+  let html = '';
+  Object.entries(counts).filter(([,count])=>count>0).sort((a,b)=>b[1]-a[1]).forEach(([model,count])=>{
+    const meta = modelMeta[model] || { color:'var(--accent)', desc:'Circutor', unit:'units', note:'' };
+    html += `
+    <div class="model-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 20px">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">MODEL</div>
+      <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:${meta.color}">${model}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px">${meta.brand||'Circutor'}</div>
+      <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--text);margin-top:10px">
+        <span>${count}</span> <span style="font-size:12px;color:var(--muted)">units</span>
+      </div>
+    </div>`;
+  });
+    // Protocol card (dynamic)
+  const protoName = window._protocolName || 'RS-485';
+  const baudRate  = window._baudRate     || '9600';
+  html += `
+    <div class="model-card" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px">
+      <div style="font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--muted);margin-bottom:6px">PROTOCOL</div>
+      <div style="font-family:var(--mono);font-size:20px;font-weight:700;color:var(--green)">${protoName}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px">Modbus RTU</div>
+      <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--text);margin-top:10px">
+        <span>${totalLoops}</span> <span style="font-size:12px;color:var(--muted)">loops</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Baud Rate ${baudRate}</div>
+    </div>`;
+  grid.innerHTML = html;
+}
+
+
+/* ── COMBOBOX HELPER ── */
+function initCombo(wrap) {
+  const inp = wrap.querySelector('.combo-inp');
+  const list = wrap.querySelector('.combo-list');
+  const items = list.querySelectorAll('.combo-item');
+  let activeIdx = -1;
+
+  function filter(val) {
+    const q = val.toLowerCase();
+    let visible = 0;
+    items.forEach(item => {
+      const match = item.textContent.toLowerCase().includes(q);
+      item.style.display = match ? '' : 'none';
+      if(match) visible++;
+    });
+    list.classList.toggle('open', visible > 0 && document.activeElement === inp);
+    activeIdx = -1;
+  }
+
+  inp.addEventListener('input', () => filter(inp.value));
+  inp.addEventListener('focus', () => filter(inp.value));
+  inp.addEventListener('blur', () => { setTimeout(()=>list.classList.remove('open'),150); });
+  inp.addEventListener('keydown', e => {
+    const vis = [...items].filter(i=>i.style.display!=='none');
+    if(e.key==='ArrowDown'){ activeIdx=Math.min(activeIdx+1,vis.length-1); }
+    else if(e.key==='ArrowUp'){ activeIdx=Math.max(activeIdx-1,0); }
+    else if(e.key==='Enter'&&activeIdx>=0){ inp.value=vis[activeIdx].dataset.val; list.classList.remove('open'); inp.dispatchEvent(new Event('change')); e.preventDefault(); return; }
+    else if(e.key==='Escape'){ list.classList.remove('open'); return; }
+    vis.forEach((i,n)=>i.classList.toggle('active',n===activeIdx));
+    if(activeIdx>=0) vis[activeIdx].scrollIntoView({block:'nearest'});
+  });
+  items.forEach(item => {
+    item.addEventListener('mousedown', e => {
+      e.preventDefault();
+      inp.value = item.dataset.val;
+      list.classList.remove('open');
+      inp.dispatchEvent(new Event('change'));
+    });
+  });
+}
+
+function makeComboHTML(id, currentVal, models, extraAttrs='') {
+  const opts = models.map(m =>
+    `<div class="combo-item" data-val="${m}">${m}</div>`
+  ).join('');
+  return `<span class="combo-wrap">
+    <input type="text" class="combo-inp" id="${id}" value="${currentVal||''}" 
+           placeholder="พิมพ์รุ่น..." autocomplete="off" ${extraAttrs}>
+    <div class="combo-list">${opts}</div>
+  </span>`;
+}
+
+
+window.filterCombo = function(inp) {
+  const wrap = inp.closest('.combo-wrap');
+  const list = wrap.querySelector('.combo-list');
+  const q = inp.value.toLowerCase();
+  let vis = 0;
+  list.querySelectorAll('.combo-item').forEach(item => {
+    const match = item.dataset.val.toLowerCase().includes(q);
+    item.style.display = match ? '' : 'none';
+    if(match) vis++;
+  });
+  list.classList.toggle('open', vis > 0);
+};
+
+function initMain(){
+  renderLoops(); renderModelCards(); populateLoopSel();
+  try { fsLoadLogs(); } catch(e) { console.error('fsLoadLogs failed', e); }
+  // คำนวณ Online Rate จากข้อมูลจริงใน METER_DATA
+  const totalM  = Object.values(METER_DATA).reduce((s,l)=>s+l.total,0);
+  const onlineM = Object.values(METER_DATA).reduce((s,l)=>s+l.online,0);
+  const rate = totalM > 0 ? ((onlineM/totalM)*100).toFixed(1) : 0;
+  document.querySelector('.rate-pct').textContent = rate+'%';
+  document.querySelector('.kpi.k-t .kpi-val').textContent = totalM;
+  document.querySelector('.kpi.k-o .kpi-val').textContent = onlineM;
+  document.querySelector('.kpi.k-f .kpi-val').textContent = totalM - onlineM;
+  document.querySelector('.kpi.k-l .kpi-val').textContent = Object.keys(METER_DATA).length;
+  setTimeout(()=>{ document.getElementById('rbar').style.width=rate+'%'; },400);
+  // Load project settings from Firestore and apply to dashboard
+  loadProjectSettings().then(cfg=>{
+    if(cfg){
+      applyProjectSettings(cfg);
+      // Re-render model cards after activeMeterData is loaded from Firestore
+      setTimeout(renderModelCards, 300);
+    }
+  });
+}
+
+/* ── LOOPS ── */
+function renderLoops(){
+  const loopCount = Object.keys(activeMeterData||METER_DATA).length;
+  const titleEl = document.getElementById('loop-summary-title');
+  if(titleEl) titleEl.textContent = 'Loop Summary — '+loopCount+' Loops';
+  const loopData = window._cfgLoops || LOOPS;
+  document.getElementById('loop-grid').innerHTML=loopData.map((l,i)=>{
+    const dots=Array.from({length:l.t},(_,d)=>`<div class="dot${d>=l.on?' off':''}"></div>`).join('');
+    return `<div class="loop-card${l.off>0?' has-off':''}" style="animation:fadeUp .4s ${.02*i}s both">
+      <div class="lc-head"><div class="lc-name">Loop ${l.n}</div><div class="lc-model">${l.m}</div></div>
+      <div class="dots">${dots}</div>
+      <div class="lc-stats">
+        <div class="lc-stat"><div class="ll">Total</div><div class="lv">${l.t}</div></div>
+        <div class="lc-stat"><div class="ll">Online</div><div class="lv on">${l.on}</div></div>
+        <div class="lc-stat"><div class="ll">Offline</div><div class="lv off-v">${l.off}</div></div>
+      </div>
+      <div class="lc-ip">IP: ${l.ip} · MAC: ${l.mac}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ── TABS (real — overrides stub) ── */
+window.switchTab = function(tab,btn){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-'+tab).classList.add('active');
+  if(tab==='admin'){
+    renderUserList();
+    // Admin sees User Mgmt + Project Settings
+    // Service sees Project Settings only (via Datalog area)
+    if(currentRole==='admin'){
+      switchAdminTab('users', document.getElementById('atab-users'));
+      document.getElementById('atab-users').style.display='';
+    } else {
+      document.getElementById('atab-users').style.display='none';
+      switchAdminTab('project', document.getElementById('atab-project'));
+    }
+  }
+  if(tab==='log'){
+    fsLoadLogs();
+  }
+};
+
+/* ── ADMIN SUB-TABS ── */
+window.switchAdminTab = function(tab, btn){
+  document.querySelectorAll('.admin-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('admin-users').style.display   = tab==='users'   ? '' : 'none';
+  document.getElementById('admin-project').style.display = tab==='project' ? '' : 'none';
+  if(tab==='project'){
+    populateLoopSel();
+    if(typeof loadProjectSettingsForm === 'function') loadProjectSettingsForm();
+  }
+  if(tab==='project'){
+    // Project Settings lives in Datalog pane — switch there
+    const logBtn = document.querySelectorAll('.nav-btn')[1];
+    window.switchTab('log', logBtn);
+    return;
+  }
+};
+
+/* ── PROJECT SETTINGS ── */
+const PS_DOC = 'project_config';
+const PS_ID  = 'settings';
+
+async function loadProjectSettings(){
+  try {
+    const snap = await getDocs(query(collection(db, PS_DOC)));
+    const d = snap.docs.find(x=>x.id===PS_ID);
+    return d ? d.data() : null;
+  } catch(e){ return null; }
+}
+
+async function loadProjectSettingsForm(){
+  const cfg = await loadProjectSettings();
+  if(!cfg) return;
+  const map = {
+    'ps-name':cfg.name,'ps-name-hl':cfg.nameHl,'ps-svcno':cfg.svcno,
+    'ps-system':cfg.system,'ps-protocol':cfg.protocol,'ps-baudrate':cfg.baudrate,'ps-total':cfg.total,'ps-online':cfg.online,
+    'ps-offline':cfg.offline,'ps-loops':cfg.loops,
+    'ps-m1-name':cfg.m1Name,'ps-m1-desc':cfg.m1Desc,'ps-m1-count':cfg.m1Count,'ps-m1-note':cfg.m1Note,
+    'ps-m2-name':cfg.m2Name,'ps-m2-count':cfg.m2Count,'ps-m2-note':cfg.m2Note,
+  };
+  Object.entries(map).forEach(([id,val])=>{ if(val!=null){ const el=document.getElementById(id); if(el) el.value=val; } });
+  if(cfg.loopsData){
+    document.getElementById('ps-loops-data').value =
+      cfg.loopsData.map(l=>`${l.n},${l.t},${l.on},${l.off},${l.m},${l.ip},${l.mac}`).join('\n');
+  }
+}
+
+window.saveProjectSettings = async function(){
+  const g  = id => document.getElementById(id)?.value.trim()||'';
+  const gn = id => { const v=g(id); return v===''?null:Number(v); };
+
+  // Build loopsData from activeMeterData
+  const loopsData = Object.entries(activeMeterData).map(([n,d])=>({
+    n:Number(n), t:d.total, on:d.online, off:d.offline, m:d.meters[0]?.model||'CVM-C5', ip:d.ip, mac:d.mac
+  }));
+
+  const cfg = {};
+  const vals = {
+    name:g('ps-name'), nameHl:g('ps-name-hl'), svcno:g('ps-svcno'), system:g('ps-system'), protocol:g('ps-protocol'), baudrate:g('ps-baudrate'),
+    total: loopsData.reduce((s,l)=>s+l.t,0),
+    online: loopsData.reduce((s,l)=>s+l.on,0),
+    offline: loopsData.reduce((s,l)=>s+l.off,0),
+    loops: loopsData.length,
+    m1Name:g('ps-m1-name'), m1Desc:g('ps-m1-desc'), m1Count:gn('ps-m1-count'), m1Note:g('ps-m1-note'),
+    m2Name:g('ps-m2-name'), m2Desc:g('ps-m2-desc'), m2Count:gn('ps-m2-count'), m2Note:g('ps-m2-note'),
+    loopsData,
+    meterDetails: activeMeterData,
+    updatedAt: new Date().toISOString(), updatedBy: currentUser,
+  };
+  Object.entries(vals).forEach(([k,v])=>{ if(v!==null&&v!=='') cfg[k]=v; });
+
+  try {
+    await updateDoc(doc(db, PS_DOC, PS_ID), cfg).catch(async ()=>{
+      const {setDoc,doc:fd} = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      await setDoc(fd(db,PS_DOC,PS_ID), cfg);
+    });
+    const st=document.getElementById('ps-status');
+    st.style.display='block'; setTimeout(()=>st.style.display='none',3000);
+    applyProjectSettings(cfg);
+    renderModelCards();
+  } catch(e){
+    const isPermission = e.message&&(e.message.includes('permission')||e.message.includes('permissions'));
+    if(isPermission){
+      const st = document.getElementById('ps-status');
+      st.style.color='var(--red)';
+      st.style.display='block';
+      st.innerHTML='⚠ Firestore Rules ยังไม่อนุญาต<br><span style="font-size:10px">Firebase Console → Firestore → Rules → เปลี่ยนเป็น <code>allow read, write: if true;</code> แล้วกด Publish</span>';
+      setTimeout(()=>{ st.style.display='none'; st.style.color='var(--green)'; },8000);
+    } else {
+      alert('บันทึกไม่สำเร็จ: '+e.message);
+    }
+  }
+};
+
+function applyProjectSettings(cfg){
+  if(!cfg) return;
+  // KPI
+  if(cfg.total   != null) document.querySelector('.kpi.k-t .kpi-val').textContent = cfg.total;
+  if(cfg.online  != null) document.querySelector('.kpi.k-o .kpi-val').textContent = cfg.online;
+  if(cfg.offline != null) document.querySelector('.kpi.k-f .kpi-val').textContent = cfg.offline;
+  if(cfg.loops   != null) document.querySelector('.kpi.k-l .kpi-val').textContent = cfg.loops;
+  // Online Rate
+  if(cfg.total && cfg.online){
+    const rate = ((cfg.online/cfg.total)*100).toFixed(1);
+    document.querySelector('.rate-pct').textContent = rate+'%';
+    setTimeout(()=>{ document.getElementById('rbar').style.width=rate+'%'; },400);
+  }
+  // Project name
+  if(cfg.name){
+    const el = document.querySelector('.dash-title');
+    if(el) el.textContent = cfg.name;
+    // Update Project chip
+    const chipProj = document.getElementById('chip-proj-name');
+    if(chipProj) chipProj.textContent = cfg.name;
+  }
+  // System chip
+  if(cfg.system){
+    const chipSys = document.getElementById('chip-system-name');
+    if(chipSys) chipSys.textContent = cfg.system;
+  }
+  // Model cards
+  const mc = document.querySelectorAll('.model-card');
+  if(mc[0]){
+    if(cfg.m1Name)  mc[0].querySelector('.mc-name').textContent  = cfg.m1Name;
+    if(cfg.m1Desc)  mc[0].querySelector('.mc-desc').textContent  = cfg.m1Desc;
+    if(cfg.m1Count) mc[0].querySelector('.mc-count').textContent = cfg.m1Count;
+    if(cfg.m1Note)  mc[0].querySelector('.mc-note').textContent  = cfg.m1Note;
+  }
+  if(mc[1]){
+    if(cfg.m2Name)  mc[1].querySelector('.mc-name').textContent  = cfg.m2Name;
+    if(cfg.m2Count) mc[1].querySelector('.mc-count').textContent = cfg.m2Count;
+    if(cfg.m2Note)  mc[1].querySelector('.mc-note').textContent  = cfg.m2Note;
+  }
+  // Protocol card — update global vars and re-render
+  if(cfg.protocol || cfg.baudrate){
+    if(cfg.protocol)  window._protocolName = cfg.protocol;
+    if(cfg.baudrate)  window._baudRate     = cfg.baudrate;
+    renderModelCards();
+  }
+  // Sync activeMeterData if saved in Firebase
+  if(cfg.meterDetails){
+    activeMeterData = cfg.meterDetails;
+    renderModelCards(); // Re-render model cards when activeMeterData is updated
+  }
+  // Loops grid
+  if(cfg.loopsData && cfg.loopsData.length){
+    window._cfgLoops = cfg.loopsData;
+    renderLoops();
+  }
+  // Section title loop count
+  if(cfg.loops){
+    const st = document.querySelector('.sec-title');
+    if(st && st.textContent.includes('Loop Summary')) st.textContent = `Loop Summary — ${cfg.loops} Loops`;
+  }
+}
+
+/* ── METER DATA — เปล่าสำหรับโครงการใหม่ (กรอกผ่าน Project Settings) ── */
+const METER_DATA = {"1": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 1, "name": "MDB 1", "serial": "", "panal": "MDB 1", "floor": "3", "addr": 99, "ct": "", "model": "CVMk2", "online": true}, {"no": 2, "name": "MDB2", "serial": "", "panal": "MDB2", "floor": "3", "addr": 2, "ct": "", "model": "CVMk2", "online": true}, {"no": 3, "name": "MDB3", "serial": "082324370150", "panal": "MDB3", "floor": "3", "addr": 3, "ct": "4000", "model": "CVM-B100", "online": true}, {"no": 4, "name": "MDB4", "serial": "", "panal": "MDB4", "floor": "3", "addr": 4, "ct": "", "model": "CVMk2", "online": true}, {"no": 5, "name": "SDB1", "serial": "", "panal": "SDB1", "floor": "3", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 6, "name": "DB5C1-DB11C1", "serial": "", "panal": "SDB1", "floor": "3", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 7, "name": "DB5C2-DB11C2", "serial": "", "panal": "SDB1", "floor": "3", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 8, "name": "DBGC-1", "serial": "", "panal": "SDB1", "floor": "3", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 9, "name": "DBGC-2", "serial": "", "panal": "SDB1", "floor": "3", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 10, "name": "DBGC-3", "serial": "", "panal": "SDB1", "floor": "3", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 11, "name": "DBGC-4", "serial": "", "panal": "SDB1", "floor": "3", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 12, "name": "DB1", "serial": "", "panal": "SDB1", "floor": "3", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 13, "name": "DB2", "serial": "", "panal": "SDB1", "floor": "3", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 14, "name": "DB3", "serial": "", "panal": "SDB1", "floor": "3", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 15, "name": "SDB2", "serial": "", "panal": "SDB2", "floor": "3", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 16, "name": "CH1", "serial": "", "panal": "SDB2", "floor": "3", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 17, "name": "CH2", "serial": "", "panal": "SDB2", "floor": "3", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 18, "name": "CH3", "serial": "", "panal": "SDB2", "floor": "3", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 19, "name": "CH4", "serial": "", "panal": "SDB2", "floor": "3", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 20, "name": "CH5", "serial": "12243950213710", "panal": "SDB2", "floor": "3", "addr": 20, "ct": "1600", "model": "CVM-C10", "online": true}, {"no": 21, "name": "AMCC1", "serial": "", "panal": "AMCC1", "floor": "3", "addr": "21", "ct": "", "model": "CVM-C10", "online": true}, {"no": 22, "name": "AMCC2", "serial": "", "panal": "AMCC1", "floor": "3", "addr": "22", "ct": "", "model": "CVM-C10", "online": true}, {"no": 23, "name": "DB1C4 (QM11)", "serial": "0430 302 069", "panal": "OUUMDB", "floor": "3", "addr": "23", "ct": "", "model": "CVMk2", "online": true}, {"no": 24, "name": "QM12", "serial": "", "panal": "OUUMDB", "floor": "3", "addr": "24", "ct": "", "model": "CVMk2", "online": true}, {"no": 25, "name": "QM", "serial": "", "panal": "OUUMDB", "floor": "3", "addr": "25", "ct": "", "model": "CVMk2", "online": true}]}, "2": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 26, "name": "SEDB1", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 27, "name": "EDB5-11C1", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 28, "name": "EDB5-11C2", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 29, "name": "EDB5-11C3", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 30, "name": "EDB5-11C4", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 31, "name": "EDBGC-1", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 32, "name": "EDBGC-2", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 33, "name": "EDBGC-3", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 34, "name": "EDBGC-4", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 35, "name": "EDB1C-3", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 36, "name": "EDB1C-4", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 37, "name": "EDB2C-3", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 38, "name": "EDB2C-4", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 39, "name": "EDB3C-3", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 40, "name": "EDB3C-4", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 41, "name": "ESMCC-1", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 42, "name": "ESMCC-2", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 43, "name": "ESMCC-3", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 44, "name": "ESMCC-4", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 45, "name": "SSP-1-1", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 46, "name": "SSP-1-2", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 47, "name": "SFP1,2,3,4", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 48, "name": "FP-2", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 49, "name": "PRS2", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 50, "name": "PRS3", "serial": "", "panal": "SEDB1", "floor": "3", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "3": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 56, "name": "SDB3", "serial": "", "panal": "SDB3", "floor": "3", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 57, "name": "DB6-11C3", "serial": "", "panal": "SDB3", "floor": "3", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 58, "name": "DB6-11C4", "serial": "", "panal": "SDB3", "floor": "3", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 59, "name": "PAC6-113,PAC11M3", "serial": "", "panal": "SDB3", "floor": "3", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 60, "name": "PAC6-114,PAC11M4", "serial": "", "panal": "SDB3", "floor": "3", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 61, "name": "DB1C-3", "serial": "", "panal": "SDB3", "floor": "3", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 62, "name": "DB1C-4", "serial": "1165 100 3355", "panal": "SDB3", "floor": "3", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 63, "name": "DB2C-3", "serial": "", "panal": "SDB3", "floor": "3", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 64, "name": "DB2C-4", "serial": "", "panal": "SDB3", "floor": "3", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 65, "name": "DB3C-3", "serial": "", "panal": "SDB3", "floor": "3", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 66, "name": "DB3C-4", "serial": "", "panal": "SDB3", "floor": "3", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 67, "name": "PAGC-1", "serial": "", "panal": "SDB3", "floor": "3", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 68, "name": "PAGC-2", "serial": "1164 490 980", "panal": "SDB3", "floor": "3", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 69, "name": "PAC1-3", "serial": "", "panal": "SDB3", "floor": "3", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 70, "name": "PAC1-4", "serial": "", "panal": "SDB3", "floor": "3", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 71, "name": "PAC2-3", "serial": "", "panal": "SDB3", "floor": "3", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 72, "name": "PAC2-4", "serial": "", "panal": "SDB3", "floor": "3", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 73, "name": "PAC3-3", "serial": "", "panal": "SDB3", "floor": "3", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 74, "name": "PAC3-4", "serial": "", "panal": "SDB3", "floor": "3", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 75, "name": "PAC5-3", "serial": "", "panal": "SDB3", "floor": "3", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 76, "name": "PAC5-4", "serial": "", "panal": "SDB3", "floor": "3", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 77, "name": "SUDB1", "serial": "", "panal": "SUDB1", "floor": "3", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 78, "name": "UDB5-11C1", "serial": "", "panal": "SUDB1", "floor": "3", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 79, "name": "UDB5-11C2", "serial": "", "panal": "SUDB1", "floor": "3", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 80, "name": "UDB5-11C3", "serial": "", "panal": "SUDB1", "floor": "3", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "4": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 85, "name": "UDBG1", "serial": "1164 490 425", "panal": "UDBG1", "floor": "G", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 86, "name": "GC1UP1", "serial": "", "panal": "UDBG1", "floor": "G", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 87, "name": "GC1UP2", "serial": "1164 490 365", "panal": "UDBG1", "floor": "G", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 88, "name": "EDBGC1", "serial": "1164 491 025", "panal": "EDBGC1", "floor": "G", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 89, "name": "GC1EP1", "serial": "", "panal": "EDBGC1", "floor": "G", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 90, "name": "GC1EP2", "serial": "", "panal": "EDBGC1", "floor": "G", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 91, "name": "DBGC1", "serial": "1164 491 050", "panal": "DBGC1", "floor": "G", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 92, "name": "GC1P1", "serial": "1164 491 073", "panal": "DBGC1", "floor": "G", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 93, "name": "GC1P2", "serial": "1164 490 301", "panal": "DBGC1", "floor": "G", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 94, "name": "GC1P3", "serial": "1164 490 376", "panal": "DBGC1", "floor": "G", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 95, "name": "GC1P4", "serial": "", "panal": "DBGC1", "floor": "G", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 96, "name": "PACG1", "serial": "1164 490 444", "panal": "PACG1", "floor": "G", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 97, "name": "APC-G-3", "serial": "1165 320 113", "panal": "PACG1", "floor": "G", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 98, "name": "EAFP-G-2", "serial": "", "panal": "PACG1", "floor": "G", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 99, "name": "UDB5C1", "serial": "1164 490 458", "panal": "UDB5C1", "floor": "5", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 100, "name": "5C1U1", "serial": "1164 490 464", "panal": "UDB5C1", "floor": "5", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 101, "name": "EDB5C1", "serial": "", "panal": "EDB5C1", "floor": "5", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 102, "name": "2C1EP1", "serial": "", "panal": "EDB5C1", "floor": "2", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 103, "name": "2C1EP2", "serial": "", "panal": "EDB5C1", "floor": "2", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 104, "name": "DB5C1", "serial": "", "panal": "DB5C1", "floor": "5", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 105, "name": "5C1P1", "serial": "", "panal": "DB5C1", "floor": "5", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 106, "name": "5C1P2", "serial": "1164 491 071", "panal": "DB5C1", "floor": "5", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 107, "name": "5C1P3", "serial": "1164 490 331", "panal": "DB5C1", "floor": "5", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 108, "name": "PAC51", "serial": "1165 320 106", "panal": "PAC51", "floor": "5", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 109, "name": "ACP-5-2", "serial": "1164 490 252", "panal": "PAC51", "floor": "5", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "5": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 115, "name": "UDB6C1", "serial": "12243950214320", "panal": "UDB6C1", "floor": "6", "addr": 213, "ct": "100", "model": "CVM-C10", "online": true}, {"no": 116, "name": "6C1U1", "serial": "", "panal": "UDB6C1", "floor": "6", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 117, "name": "EDB6C1", "serial": "12243950214338", "panal": "EDB6C1", "floor": "6", "addr": 210, "ct": "100", "model": "CVM-C10", "online": true}, {"no": 118, "name": "6C1EP1", "serial": "1164 490 368", "panal": "EDB6C1", "floor": "6", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 119, "name": "6C1EP2", "serial": "1165 230 025", "panal": "EDB6C1", "floor": "6", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 120, "name": "DB6C1", "serial": "12243950214321", "panal": "DB6C1", "floor": "6", "addr": 206, "ct": "150", "model": "CVM-C10", "online": true}, {"no": 121, "name": "6C1P1", "serial": "1164 491 041", "panal": "DB6C1", "floor": "6", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 122, "name": "6C1P2", "serial": "", "panal": "DB6C1", "floor": "6", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 123, "name": "6C1P3", "serial": "1164 491 057", "panal": "DB6C1", "floor": "6", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 124, "name": "UDB7C1", "serial": "1164 490 270", "panal": "UDB7C1", "floor": "7", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 125, "name": "7C1U1", "serial": "1164 490 474", "panal": "UDB7C1", "floor": "7", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 126, "name": "EDB7C1", "serial": "1164 490 524", "panal": "EDB7C1", "floor": "7", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 127, "name": "7C1EP1", "serial": "1164 491 023", "panal": "EDB7C1", "floor": "7", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 128, "name": "7C1EP2", "serial": "1164 490 516", "panal": "EDB7C1", "floor": "7", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 129, "name": "DB7C1", "serial": "1164 490 338", "panal": "DB7C1", "floor": "7", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 130, "name": "7C1P1", "serial": "1164 490 324", "panal": "DB7C1", "floor": "7", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 131, "name": "7C1P2", "serial": "1164 490 313", "panal": "DB7C1", "floor": "7", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 132, "name": "7C1P3", "serial": "1164 490 510", "panal": "DB7C1", "floor": "7", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 133, "name": "UDB8C1", "serial": "", "panal": "UDB8C1", "floor": "8", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 134, "name": "8C1U1", "serial": "1164 490 182", "panal": "UDB8C1", "floor": "8", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 135, "name": "EDB8C1", "serial": "1164 491 032", "panal": "EDB8C1", "floor": "8", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 136, "name": "8C1EP1", "serial": "1164 490 401", "panal": "EDB8C1", "floor": "8", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 137, "name": "8C1EP2", "serial": "1164 490 395", "panal": "EDB8C1", "floor": "8", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 138, "name": "DB8C1", "serial": "1164 491 053", "panal": "DB8C1", "floor": "8", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 139, "name": "8C1P1", "serial": "1164 490 414", "panal": "DB8C1", "floor": "8", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "6": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 142, "name": "UDB9C1", "serial": "1164 491 027", "panal": "UDB9C1", "floor": "9", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 143, "name": "9C1U1", "serial": "", "panal": "UDB9C1", "floor": "9", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 144, "name": "EDB9C1", "serial": "1164 490 422", "panal": "EDB9C1", "floor": "9", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 145, "name": "9C1EP1", "serial": "1164 490 367", "panal": "EDB9C1", "floor": "9", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 146, "name": "9C1EP2", "serial": "1164 490 351", "panal": "EDB9C1", "floor": "9", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 147, "name": "DB9C1", "serial": "1164 490 393", "panal": "DB9C1", "floor": "9", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 148, "name": "9C1P1", "serial": "", "panal": "DB9C1", "floor": "9", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 149, "name": "9C1P2", "serial": "1164 491 045", "panal": "DB9C1", "floor": "9", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 150, "name": "9C1P3", "serial": "1164 491 037", "panal": "DB9C1", "floor": "9", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 151, "name": "UDB10C1", "serial": "1164 491 019", "panal": "UDB10C1", "floor": "10", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 152, "name": "10C1U1", "serial": "", "panal": "UDB10C1", "floor": "10", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 153, "name": "EDB10C1", "serial": "1164 491 021", "panal": "EDB10C1", "floor": "10", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 154, "name": "10C1EP1", "serial": "1164 491 012", "panal": "EDB10C1", "floor": "10", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 155, "name": "10C1EP2", "serial": "1164 491 024", "panal": "EDB10C1", "floor": "10", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 156, "name": "DB10C1", "serial": "1164 491 052", "panal": "DB10C1", "floor": "10", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 157, "name": "10C1P1", "serial": "1164 491 060", "panal": "DB10C1", "floor": "10", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 158, "name": "10C1P2", "serial": "1164 491 076", "panal": "DB10C1", "floor": "10", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 159, "name": "10C1P3", "serial": "1164 491 046", "panal": "DB10C1", "floor": "10", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 160, "name": "UDB11C1", "serial": "1164 500 014", "panal": "UDB11C1", "floor": "10", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 161, "name": "11C1U1", "serial": "1164 490 405", "panal": "UDB11C1", "floor": "10", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 162, "name": "11MC1U1", "serial": "1164 500 026", "panal": "UDB11C1", "floor": "11M", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 163, "name": "EDB11C1", "serial": "1164 490 427", "panal": "EDB11C1", "floor": "11", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 164, "name": "11C1EP1", "serial": "1164 490 345", "panal": "EDB11C1", "floor": "11", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 165, "name": "11C1EP2", "serial": "1164 490 399", "panal": "EDB11C1", "floor": "11", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 166, "name": "DB11C1", "serial": "1164 491 018", "panal": "DB11C1", "floor": "11", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "7": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 170, "name": "UDBGC2", "serial": "", "panal": "", "floor": "G", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 171, "name": "GC2UP1", "serial": "", "panal": "", "floor": "G", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 172, "name": "GC2UP2", "serial": "", "panal": "", "floor": "G", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 173, "name": "EDBGC2", "serial": "", "panal": "", "floor": "G", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 174, "name": "GC2EP1", "serial": "", "panal": "", "floor": "G", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 175, "name": "GC2EP2", "serial": "", "panal": "", "floor": "G", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 176, "name": "GC2EP3", "serial": "", "panal": "", "floor": "G", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 177, "name": "DBGC2", "serial": "1164 491 048", "panal": "DBGC2", "floor": "G", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 178, "name": "GC2P1", "serial": "", "panal": "DBGC2", "floor": "G", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 179, "name": "GC2P2", "serial": "1164 491 039", "panal": "DBGC2", "floor": "G", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 180, "name": "GC2P3", "serial": "", "panal": "DBGC2", "floor": "G", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 181, "name": "GC2P4", "serial": "", "panal": "DBGC2", "floor": "G", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 182, "name": "PACG2", "serial": "", "panal": "PACG2", "floor": "G", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 183, "name": "APC-G-1", "serial": "", "panal": "PACG2", "floor": "G", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 184, "name": "EAFP-G-1", "serial": "", "panal": "PACG2", "floor": "G", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 185, "name": "UDB5C2", "serial": "", "panal": "UDB5C2", "floor": "5", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 186, "name": "5C2U1", "serial": "", "panal": "UDB5C2", "floor": "5", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 187, "name": "EDB5C2", "serial": "1165 100 379", "panal": "EDB5C2", "floor": "5", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 188, "name": "5C2EP1", "serial": "1165 100 384", "panal": "EDB5C2", "floor": "5", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 189, "name": "5C2EP2", "serial": "", "panal": "EDB5C2", "floor": "5", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 190, "name": "DB5C2", "serial": "1165 591 064", "panal": "DB5C2", "floor": "5", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 191, "name": "5C2P1", "serial": "1165 090 211", "panal": "DB5C2", "floor": "5", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 192, "name": "5C2P2", "serial": "1164 490 504", "panal": "DB5C2", "floor": "5", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 193, "name": "5C2P3", "serial": "1164 430 336", "panal": "DB5C2", "floor": "5", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 194, "name": "PAC52", "serial": "1165 320 121", "panal": "PAC52", "floor": "5", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "8": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 201, "name": "UDB6C2", "serial": "1164 490 420", "panal": "UDB6C2", "floor": "6", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 202, "name": "6C2U1", "serial": "", "panal": "UDB6C2", "floor": "6", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 203, "name": "EDB6C2", "serial": "1165 230 002", "panal": "EDB6C2", "floor": "6", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 204, "name": "6C2EP1", "serial": "1164 490 388", "panal": "EDB6C2", "floor": "6", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 205, "name": "6C2EP2", "serial": "1165 240 059", "panal": "EDB6C2", "floor": "6", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 206, "name": "DB6C2", "serial": "12243950214335", "panal": "DB6C2", "floor": "6", "addr": 222, "ct": "150", "model": "CVM-C10", "online": true}, {"no": 207, "name": "6C2P1", "serial": "1164 491 049", "panal": "DB6C2", "floor": "6", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 208, "name": "6C2P2", "serial": "1164 491 062", "panal": "DB6C2", "floor": "6", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 209, "name": "6C2P3", "serial": "1164 500 024", "panal": "DB6C2", "floor": "6", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 210, "name": "UDB7C2", "serial": "", "panal": "", "floor": "7", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 211, "name": "7C2U1", "serial": "", "panal": "", "floor": "7", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 212, "name": "EDB7C2", "serial": "1164 490 997", "panal": "", "floor": "7", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 213, "name": "7C2EP1", "serial": "", "panal": "", "floor": "7", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 214, "name": "7C2EP2", "serial": "", "panal": "", "floor": "7", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 215, "name": "DB7C2", "serial": "1164 490 411", "panal": "", "floor": "7", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 216, "name": "7C2P1", "serial": "", "panal": "", "floor": "7", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 217, "name": "7C2P2", "serial": "", "panal": "", "floor": "7", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 218, "name": "7C2P3", "serial": "", "panal": "", "floor": "7", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 219, "name": "UDB8C2", "serial": "1164 490 969", "panal": "", "floor": "8", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 220, "name": "8C2U1", "serial": "", "panal": "", "floor": "8", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 221, "name": "EDB8C2", "serial": "", "panal": "", "floor": "8", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 222, "name": "8C2EP1", "serial": "", "panal": "", "floor": "8", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 223, "name": "8C2EP2", "serial": "", "panal": "", "floor": "8", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 224, "name": "DB8C2", "serial": "1164 490 384", "panal": "", "floor": "8", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 225, "name": "8C2P1", "serial": "1164 491 010", "panal": "", "floor": "8", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "9": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 228, "name": "UDB9C2", "serial": "", "panal": "UDB9C2", "floor": "9", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 229, "name": "9C2U1", "serial": "1164 491 013", "panal": "UDB9C2", "floor": "9", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 230, "name": "EDB9C2", "serial": "", "panal": "EDB9C2", "floor": "9", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 231, "name": "9C2EP1", "serial": "1164 490 400", "panal": "EDB9C2", "floor": "9", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 232, "name": "9C2EP2", "serial": "", "panal": "EDB9C2", "floor": "9", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 233, "name": "DB9C2", "serial": "1164 491 070", "panal": "DB9C2", "floor": "9", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 234, "name": "9C2P1", "serial": "", "panal": "DB9C2", "floor": "9", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 235, "name": "9C2P2", "serial": "", "panal": "DB9C2", "floor": "9", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 236, "name": "9C2P3", "serial": "", "panal": "DB9C2", "floor": "9", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 237, "name": "UDB10C2", "serial": "", "panal": "UDB10C2", "floor": "10", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 238, "name": "10C2U1", "serial": "", "panal": "UDB10C2", "floor": "10", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 239, "name": "EDB10C2", "serial": "1164 490 426", "panal": "EDB10C2", "floor": "10", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 240, "name": "10C2EP1", "serial": "1164 490 369", "panal": "EDB10C2", "floor": "10", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 241, "name": "10C2EP2", "serial": "1164 490 419", "panal": "EDB10C2", "floor": "10", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 242, "name": "DB10C2", "serial": "", "panal": "DB10C2", "floor": "10", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 243, "name": "10C2P1", "serial": "1164 490 380", "panal": "DB10C2", "floor": "10", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 244, "name": "10C2P2", "serial": "1164 491 009", "panal": "DB10C2", "floor": "10", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 245, "name": "10C2P3", "serial": "1164 491 057", "panal": "DB10C2", "floor": "10", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 246, "name": "UDB11C2", "serial": "1164 490 404", "panal": "UDB11C2", "floor": "11", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 247, "name": "11C2U1", "serial": "1164 490 413", "panal": "UDB11C2", "floor": "11", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 248, "name": "11MC2U1", "serial": "1164 491 047", "panal": "UDB11C2", "floor": "11M", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 249, "name": "EDB11C2", "serial": "1164 491 011", "panal": "EDB11C2", "floor": "11", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 250, "name": "11C2EP1", "serial": "", "panal": "EDB11C2", "floor": "11", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 251, "name": "11C2EP2", "serial": "", "panal": "EDB11C2", "floor": "11", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 252, "name": "DB11C2", "serial": "1164 490 397", "panal": "DB11C2", "floor": "11", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "10": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 256, "name": "EDBGC3", "serial": "", "panal": "EDBGC3", "floor": "G", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 257, "name": "GC3EP1", "serial": "1164 490 992", "panal": "EDBGC3", "floor": "G", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 258, "name": "GC3EP2", "serial": "1164 491 004", "panal": "EDBGC3", "floor": "G", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 259, "name": "DBGC3", "serial": "", "panal": "DBGC3", "floor": "G", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 260, "name": "GC3P1", "serial": "1164 490 522", "panal": "DBGC3", "floor": "G", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 261, "name": "GC3P2", "serial": "1164 500 067", "panal": "DBGC3", "floor": "G", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 262, "name": "DB1", "serial": "1165100611", "panal": "DB1", "floor": "G", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 263, "name": "DB2", "serial": "1165 100 618", "panal": "DB2", "floor": "G", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 264, "name": "CUR1", "serial": "1165 100 613", "panal": "DB2", "floor": "G", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 265, "name": "CUR2", "serial": "1164 370 527", "panal": "DB2", "floor": "G", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 266, "name": "CUR3", "serial": "1165 100 392", "panal": "DB2", "floor": "G", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 267, "name": "CUR4", "serial": "1164 370 459", "panal": "DB2", "floor": "G", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 268, "name": "DB3", "serial": "1165 100 383", "panal": "DB3", "floor": "G", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 269, "name": "CUR1", "serial": "1164 370 482", "panal": "DB3", "floor": "G", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 270, "name": "CUR6", "serial": "1164 370 462", "panal": "DB3", "floor": "G", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 271, "name": "CUR7", "serial": "1164 490 970", "panal": "DB3", "floor": "G", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 272, "name": "PACG3", "serial": "1165 320 103", "panal": "PACG3", "floor": "G", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 273, "name": "KFAFP-G-1", "serial": "1165 320 099", "panal": "PACG3", "floor": "G", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 274, "name": "EDB1C3", "serial": "1164 490 460", "panal": "EDB1C3", "floor": "G", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 275, "name": "1C3EP1", "serial": "1164 490 272", "panal": "EDB1C3", "floor": "1", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 276, "name": "DB1C3", "serial": "1165 100 474", "panal": "DB1C3", "floor": "1", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 277, "name": "1C3P1", "serial": "1164 490 454", "panal": "DB1C3", "floor": "1", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 278, "name": "PAC13", "serial": "1164 500 001", "panal": "PAC13", "floor": "1", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 279, "name": "ACP-1-1", "serial": "1164 490 534", "panal": "PAC13", "floor": "1", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 280, "name": "ACP-1-2", "serial": "1164 490 539", "panal": "PAC13", "floor": "1", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "11": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 284, "name": "EDB3C3", "serial": "", "panal": "EDB3C3", "floor": "3", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 285, "name": "3C3EP1", "serial": "", "panal": "EDB3C3", "floor": "3", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 286, "name": "DB3C3", "serial": "", "panal": "DB3C3", "floor": "3", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 287, "name": "3C3P1", "serial": "", "panal": "DB3C3", "floor": "3", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 288, "name": "PAC33", "serial": "", "panal": "PAC33", "floor": "3", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 289, "name": "ACP-3-7", "serial": "", "panal": "PAC33", "floor": "3", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 290, "name": "EAFP-3-1", "serial": "", "panal": "PAC33", "floor": "3", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 291, "name": "EAFP-3-11", "serial": "", "panal": "PAC33", "floor": "3", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 292, "name": "UDB6C3", "serial": "", "panal": "UDB6C3", "floor": "6", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 293, "name": "6C3U1", "serial": "", "panal": "UDB6C3", "floor": "6", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 294, "name": "EDB6C3", "serial": "", "panal": "EDB6C3", "floor": "6", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 295, "name": "6C3EP1", "serial": "", "panal": "EDB6C3", "floor": "6", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 296, "name": "DB6C3", "serial": "", "panal": "DB6C3", "floor": "6", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 297, "name": "6C3P1", "serial": "", "panal": "DB6C3", "floor": "6", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 298, "name": "6C3P2", "serial": "1164 491 003", "panal": "DB6C3", "floor": "6", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 299, "name": "PAC63", "serial": "", "panal": "PAC63", "floor": "6", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 300, "name": "APC-6-1", "serial": "", "panal": "PAC63", "floor": "6", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 301, "name": "APC-6-4", "serial": "", "panal": "PAC63", "floor": "6", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 302, "name": "APC-6-13", "serial": "", "panal": "PAC63", "floor": "6", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 303, "name": "APC-6-14", "serial": "", "panal": "PAC63", "floor": "6", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 304, "name": "UDB6C3", "serial": "", "panal": "UDB6C3", "floor": "6", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 305, "name": "7C3U1", "serial": "", "panal": "UDB6C3", "floor": "6", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 306, "name": "EDB7C3", "serial": "", "panal": "EDB7C3", "floor": "7", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 307, "name": "7C3EP1", "serial": "", "panal": "EDB7C3", "floor": "7", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 308, "name": "DB7C3", "serial": "", "panal": "DB7C3", "floor": "7", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "12": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 316, "name": "UDB8C3", "serial": "", "panal": "UDB8C3", "floor": "8", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 317, "name": "8C3U1", "serial": "", "panal": "UDB8C3", "floor": "8", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 318, "name": "EDB8C3", "serial": "", "panal": "EDB8C3", "floor": "8", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 319, "name": "8C3EP1", "serial": "", "panal": "EDB8C3", "floor": "8", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 320, "name": "DB8C3", "serial": "", "panal": "DB8C3", "floor": "8", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 321, "name": "8C3P1", "serial": "", "panal": "DB8C3", "floor": "8", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 322, "name": "8C3P2", "serial": "", "panal": "DB8C3", "floor": "8", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 323, "name": "PAC83", "serial": "", "panal": "PAC83", "floor": "8", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 324, "name": "APC-8-1", "serial": "", "panal": "PAC83", "floor": "8", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 325, "name": "APC-8-4", "serial": "", "panal": "PAC83", "floor": "8", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 326, "name": "APC-8-13", "serial": "", "panal": "PAC83", "floor": "8", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 327, "name": "APC-8-14", "serial": "", "panal": "PAC83", "floor": "8", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 328, "name": "UDB9C3", "serial": "", "panal": "UDB9C3", "floor": "9", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 329, "name": "9C3U1", "serial": "", "panal": "UDB9C3", "floor": "9", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 330, "name": "EDB9C3", "serial": "", "panal": "EDB9C3", "floor": "9", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 331, "name": "9C3EP1", "serial": "", "panal": "EDB9C3", "floor": "9", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 332, "name": "DB9C3", "serial": "", "panal": "DB9C3", "floor": "9", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 333, "name": "9C3P1", "serial": "1164 490 517", "panal": "DB9C3", "floor": "9", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 334, "name": "9C3P2", "serial": "", "panal": "DB9C3", "floor": "9", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 335, "name": "PAC93", "serial": "", "panal": "PAC93", "floor": "9", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 336, "name": "APC-9-1", "serial": "", "panal": "PAC93", "floor": "9", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 337, "name": "APC-9-4", "serial": "", "panal": "PAC93", "floor": "9", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 338, "name": "APC-9-13", "serial": "", "panal": "PAC93", "floor": "9", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 339, "name": "APC-9-14", "serial": "", "panal": "PAC93", "floor": "9", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 340, "name": "DB10C3", "serial": "1164 450 066", "panal": "DB10C3", "floor": "10", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "13": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 348, "name": "UDB10C3", "serial": "", "panal": "UDB10C3", "floor": "10", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 349, "name": "10C3U1", "serial": "", "panal": "UDB10C3", "floor": "10", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 350, "name": "EDB10C3", "serial": "", "panal": "EDB10C3", "floor": "10", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 351, "name": "10C3EP1", "serial": "", "panal": "EDB10C3", "floor": "10", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 352, "name": "UDB11C3", "serial": "", "panal": "UDB11C3", "floor": "11", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 353, "name": "11C3U1", "serial": "1164 490 996", "panal": "UDB11C3", "floor": "11", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 354, "name": "11MC3U1", "serial": "", "panal": "UDB11C3", "floor": "11", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 355, "name": "EDB11C3", "serial": "", "panal": "EDB11C3", "floor": "11", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 356, "name": "11C3EP1", "serial": "1164 490 363", "panal": "EDB11C3", "floor": "11", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 357, "name": "11C3EP2", "serial": "", "panal": "EDB11C3", "floor": "11", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 358, "name": "DB11C3", "serial": "1164 490 310", "panal": "DB11C3", "floor": "11", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 359, "name": "11C3P1", "serial": "1164 490 514", "panal": "DB11C3", "floor": "11", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 360, "name": "11C3P2", "serial": "1164 490 377", "panal": "DB11C3", "floor": "11", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 361, "name": "11C3P3", "serial": "", "panal": "DB11C3", "floor": "11", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 362, "name": "PAC113", "serial": "", "panal": "PAC113", "floor": "11", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 363, "name": "PAC-11-1", "serial": "", "panal": "PAC113", "floor": "11", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 364, "name": "PAC-11-3", "serial": "", "panal": "PAC113", "floor": "11", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 365, "name": "PAC-11-9", "serial": "", "panal": "PAC113", "floor": "11", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 366, "name": "PAC11M3", "serial": "1165 320 055", "panal": "PAC113", "floor": "11M", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 367, "name": "APC-11M-1", "serial": "1164 490 224", "panal": "PAC113", "floor": "11M", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 368, "name": "EAFP-11M-1", "serial": "1164 490 244", "panal": "PAC113", "floor": "11M", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 369, "name": "ESMCC2", "serial": "1164 490 259", "panal": "ESMCC2", "floor": "11M", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 370, "name": "CW-PBS-1,2,3", "serial": "", "panal": "CW-PBS-1,2,3", "floor": "11M", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 371, "name": "RW-PBS-1,2,3", "serial": "", "panal": "RW-PBS-1,2,3", "floor": "11M", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 372, "name": "LIFT12", "serial": "", "panal": "LIFT12", "floor": "11M", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "14": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 374, "name": "EDBGC4", "serial": "1164 490 999", "panal": "EDBGC4", "floor": "G", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 375, "name": "GC4EP1", "serial": "", "panal": "EDBGC4", "floor": "G", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 376, "name": "GC4EP2", "serial": "1164 370 470", "panal": "EDBGC4", "floor": "G", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 377, "name": "DBGC4", "serial": "", "panal": "DBGC4", "floor": "G", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 378, "name": "GC4P1", "serial": "", "panal": "DBGC4", "floor": "G", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 379, "name": "GC4P2", "serial": "", "panal": "DBGC4", "floor": "G", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 380, "name": "GC4P3", "serial": "", "panal": "DBGC4", "floor": "G", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 381, "name": "GC4P4", "serial": "", "panal": "DBGC4", "floor": "G", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 382, "name": "EDB1C4", "serial": "1164 490 476", "panal": "EDB1C4", "floor": "1", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 383, "name": "1C4EP1", "serial": "1164 500 078", "panal": "EDB1C4", "floor": "1", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 384, "name": "DB1C4", "serial": "1164 500 055", "panal": "DB1C4", "floor": "1", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 385, "name": "1C4P1", "serial": "", "panal": "DB1C4", "floor": "1", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 386, "name": "PAC14", "serial": "1164 490 538", "panal": "PAC14", "floor": "1", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 387, "name": "ACP-1-3", "serial": "1164 490 438", "panal": "PAC14", "floor": "1", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 388, "name": "ACP-1-4", "serial": "1164 490 433", "panal": "PAC14", "floor": "1", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 389, "name": "ACP-1-6", "serial": "1164 490 442", "panal": "PAC14", "floor": "1", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 390, "name": "ACP-1-7", "serial": "1164 490 447", "panal": "PAC14", "floor": "1", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 391, "name": "ACP-1-8", "serial": "", "panal": "PAC14", "floor": "1", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 392, "name": "EDB2C4", "serial": "1164 490 455", "panal": "EDB2C4", "floor": "2", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 393, "name": "2C4EP1", "serial": "", "panal": "EDB2C4", "floor": "2", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 394, "name": "DB2C4", "serial": "1164 370 463", "panal": "DB2C4", "floor": "2", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 395, "name": "2C4P1", "serial": "1164 490 453", "panal": "DB2C4", "floor": "2", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 396, "name": "PAC24", "serial": "1165 240 065", "panal": "PAC24", "floor": "2", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 397, "name": "ACP-2-2", "serial": "1164 490 166", "panal": "PAC24", "floor": "2", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 398, "name": "EAFP-2-11", "serial": "11645 320 042", "panal": "PAC24", "floor": "2", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "15": {"ip": "-", "mac": "-", "total": 24, "online": 24, "offline": 0, "meters": [{"no": 400, "name": "UDB3C4", "serial": "", "panal": "UDB3C4", "floor": "3", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 401, "name": "3C4UP1", "serial": "", "panal": "UDB3C4", "floor": "3", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 402, "name": "3C4UP2", "serial": "", "panal": "UDB3C4", "floor": "3", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 403, "name": "EDB3C4", "serial": "", "panal": "EDB3C4", "floor": "3", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 404, "name": "3C4EP1", "serial": "", "panal": "EDB3C4", "floor": "3", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 405, "name": "DB3C4", "serial": "", "panal": "DB3C4", "floor": "3", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 406, "name": "3C4P1", "serial": "", "panal": "DB3C4", "floor": "3", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 407, "name": "PAC34", "serial": "", "panal": "PAC34", "floor": "3", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 408, "name": "ACP-3-1", "serial": "", "panal": "PAC34", "floor": "3", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 409, "name": "ACP-3-3", "serial": "", "panal": "PAC34", "floor": "3", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 410, "name": "ACP-3-5", "serial": "1164 490 432", "panal": "PAC34", "floor": "3", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 411, "name": "ACP-3-10", "serial": "", "panal": "PAC34", "floor": "3", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 412, "name": "ACP-3-8", "serial": "1164 490 431", "panal": "PAC34", "floor": "3", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 413, "name": "ACP-2-10", "serial": "", "panal": "PAC34", "floor": "3", "addr": "14/24", "ct": "", "model": "CVM-C10", "online": true}, {"no": 414, "name": "EAFP-3-2", "serial": "1154 490 172", "panal": "PAC34", "floor": "3", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 415, "name": "EAFP-3-12", "serial": "1154 490 429", "panal": "PAC34", "floor": "3", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 416, "name": "EDB2C3", "serial": "1164 490 452", "panal": "EDB2C3", "floor": "2", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 417, "name": "2C3EP1", "serial": "1164 370 461", "panal": "EDB2C3", "floor": "2", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 418, "name": "DB2C3", "serial": "1164 490 455", "panal": "DB2C3", "floor": "2", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 419, "name": "2C3P1", "serial": "", "panal": "DB2C3", "floor": "2", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 420, "name": "PAC23", "serial": "1164 490 448", "panal": "PAC23", "floor": "2", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 421, "name": "ACP-2-1", "serial": "1164 490 445", "panal": "PAC23", "floor": "2", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 422, "name": "ACP-2-9", "serial": "1164 490 443", "panal": "PAC23", "floor": "2", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 423, "name": "EAFP-2-10", "serial": "1164 490 434", "panal": "PAC23", "floor": "2", "addr": "24", "ct": "", "model": "CVM-C10", "online": true}]}, "16": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 424, "name": "UDB6C4", "serial": "", "panal": "UDB6C4", "floor": "6", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 425, "name": "6C4U1", "serial": "", "panal": "UDB6C4", "floor": "6", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 426, "name": "6C4U2", "serial": "", "panal": "UDB6C4", "floor": "6", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 427, "name": "EDB6C4", "serial": "1164 500 054", "panal": "EDB6C4", "floor": "6", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 428, "name": "6C4EP1", "serial": "", "panal": "EDB6C4", "floor": "6", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 429, "name": "6C4EP2", "serial": "", "panal": "EDB6C4", "floor": "6", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 430, "name": "DB6C4", "serial": "1164 490 326", "panal": "DB6C4", "floor": "6", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 431, "name": "6C4P1", "serial": "", "panal": "DB6C4", "floor": "6", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 432, "name": "6C4P2", "serial": "1164 490 308", "panal": "DB6C4", "floor": "6", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 433, "name": "6C4P3", "serial": "", "panal": "DB6C4", "floor": "6", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 434, "name": "PAC64", "serial": "", "panal": "PAC64", "floor": "6", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 435, "name": "APC-6-7", "serial": "", "panal": "PAC64", "floor": "6", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 436, "name": "APC-6-10", "serial": "", "panal": "PAC64", "floor": "6", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 437, "name": "APC-6-15", "serial": "", "panal": "PAC64", "floor": "6", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 438, "name": "APC-6-16", "serial": "", "panal": "PAC64", "floor": "6", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 439, "name": "UDB7C4", "serial": "", "panal": "UDB7C4", "floor": "7", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 440, "name": "7C4U1", "serial": "", "panal": "UDB7C4", "floor": "7", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 441, "name": "EDB7C4", "serial": "", "panal": "EDB7C4", "floor": "7", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 442, "name": "7C4EP1", "serial": "", "panal": "EDB7C4", "floor": "7", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 443, "name": "DB7C4", "serial": "", "panal": "DB7C4", "floor": "7", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 444, "name": "7C4P1", "serial": "1164 490 371", "panal": "DB7C4", "floor": "7", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 445, "name": "7C4P2", "serial": "", "panal": "DB7C4", "floor": "7", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 446, "name": "PAC74", "serial": "", "panal": "PAC74", "floor": "7", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 447, "name": "APC-7-7", "serial": "", "panal": "PAC74", "floor": "7", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}, {"no": 448, "name": "APC-7-10", "serial": "", "panal": "PAC74", "floor": "7", "addr": 26, "ct": "", "model": "CVM-C10", "online": true}]}, "17": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 455, "name": "DB8C4", "serial": "", "panal": "DB8C4", "floor": "8", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 456, "name": "8C4P1", "serial": "", "panal": "DB8C4", "floor": "8", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 457, "name": "8C4P2", "serial": "", "panal": "DB8C4", "floor": "8", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 458, "name": "PAC84", "serial": "", "panal": "PAC84", "floor": "8", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 459, "name": "APC-8-7", "serial": "", "panal": "PAC84", "floor": "8", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 460, "name": "APC-8-10", "serial": "", "panal": "PAC84", "floor": "8", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 461, "name": "APC-8-15", "serial": "", "panal": "PAC84", "floor": "8", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 462, "name": "APC-8-16", "serial": "", "panal": "PAC84", "floor": "8", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 463, "name": "UDB9C4", "serial": "", "panal": "UDB9C4", "floor": "9", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 464, "name": "9C4U1", "serial": "", "panal": "UDB9C4", "floor": "9", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 465, "name": "EDB9C4", "serial": "", "panal": "EDB9C4", "floor": "9", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 466, "name": "9C4EP1", "serial": "", "panal": "EDB9C4", "floor": "9", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 467, "name": "DB9C4", "serial": "", "panal": "DB9C4", "floor": "9", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 468, "name": "9C4P1", "serial": "", "panal": "DB9C4", "floor": "9", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 469, "name": "9C4P2", "serial": "", "panal": "DB9C4", "floor": "9", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 470, "name": "PAC94", "serial": "", "panal": "PAC94", "floor": "9", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 471, "name": "APC-9-7", "serial": "", "panal": "PAC94", "floor": "9", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 472, "name": "APC-9-10", "serial": "", "panal": "PAC94", "floor": "9", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 473, "name": "APC-9-15", "serial": "", "panal": "PAC94", "floor": "9", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 474, "name": "APC-9-16", "serial": "", "panal": "PAC94", "floor": "9", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 475, "name": "PAC104", "serial": "", "panal": "PAC104", "floor": "10", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 476, "name": "APC-10-7", "serial": "", "panal": "PAC104", "floor": "10", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 477, "name": "APC-10-10", "serial": "", "panal": "PAC104", "floor": "10", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 478, "name": "APC-10-15", "serial": "", "panal": "PAC104", "floor": "10", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 479, "name": "APC-10-16", "serial": "", "panal": "PAC104", "floor": "10", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "18": {"ip": "-", "mac": "-", "total": 25, "online": 25, "offline": 0, "meters": [{"no": 487, "name": "UDB11C4", "serial": "", "panal": "UDB11C4", "floor": "11", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 488, "name": "11C4U1", "serial": "1164 491 035", "panal": "UDB11C4", "floor": "11", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 489, "name": "11MC4U1", "serial": "1164 500 075", "panal": "UDB11C4", "floor": "11", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 490, "name": "EDB11C4", "serial": "", "panal": "EDB11C4", "floor": "11", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 491, "name": "11C4EP1", "serial": "", "panal": "EDB11C4", "floor": "11", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 492, "name": "11MC4EP1", "serial": "1164 490 518", "panal": "EDB11C4", "floor": "11", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 493, "name": "DB11C4", "serial": "1164 491 065", "panal": "DB11C4", "floor": "11", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 494, "name": "11C4P1", "serial": "1164 490 513", "panal": "DB11C4", "floor": "11", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 495, "name": "11C4P2", "serial": "1164 490 507", "panal": "DB11C4", "floor": "11", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 496, "name": "11C4P3", "serial": "", "panal": "DB11C4", "floor": "11", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}, {"no": 497, "name": "PAC114", "serial": "1164 490 544", "panal": "PAC114", "floor": "11", "addr": 11, "ct": "", "model": "CVM-C10", "online": true}, {"no": 498, "name": "PAC-11-5", "serial": "1165 320 041", "panal": "PAC114", "floor": "11", "addr": 12, "ct": "", "model": "CVM-C10", "online": true}, {"no": 499, "name": "PAC-11-7", "serial": "1164 490 241", "panal": "PAC114", "floor": "11", "addr": 13, "ct": "", "model": "CVM-C10", "online": true}, {"no": 500, "name": "PAC-11-10", "serial": "1164 490 548", "panal": "PAC114", "floor": "11", "addr": 14, "ct": "", "model": "CVM-C10", "online": true}, {"no": 501, "name": "PAC11M4", "serial": "1165 320 051", "panal": "PAC114", "floor": "11", "addr": 15, "ct": "", "model": "CVM-C10", "online": true}, {"no": 502, "name": "APC-11M-2", "serial": "1165 240 052", "panal": "PAC114", "floor": "11", "addr": 16, "ct": "", "model": "CVM-C10", "online": true}, {"no": 503, "name": "EAFP-11M-2", "serial": "1165 200 694", "panal": "PAC114", "floor": "11", "addr": 17, "ct": "", "model": "CVM-C10", "online": true}, {"no": 504, "name": "ESMCC3", "serial": "1165 210 603", "panal": "ESMCC3", "floor": "11M", "addr": 18, "ct": "", "model": "CVM-C10", "online": true}, {"no": 505, "name": "CW-PBS-4,5,6", "serial": "1164 490 255", "panal": "ESMCC3", "floor": "11M", "addr": 19, "ct": "", "model": "CVM-C10", "online": true}, {"no": 506, "name": "RW-PBS-4,5,6", "serial": "", "panal": "ESMCC3", "floor": "11M", "addr": 20, "ct": "", "model": "CVM-C10", "online": true}, {"no": 507, "name": "ESMCC4", "serial": "1164 490 268", "panal": "ESMCC4", "floor": "11M", "addr": 21, "ct": "", "model": "CVM-C10", "online": true}, {"no": 508, "name": "DRINKING WATER", "serial": "", "panal": "DRINKING WATER", "floor": "11M", "addr": 22, "ct": "", "model": "CVM-C10", "online": true}, {"no": 509, "name": "LIFT11", "serial": "", "panal": "LIFT11", "floor": "11M", "addr": 23, "ct": "", "model": "CVM-C10", "online": true}, {"no": 510, "name": "LIFT4", "serial": "", "panal": "LIFT4", "floor": "11M", "addr": 24, "ct": "", "model": "CVM-C10", "online": true}, {"no": 511, "name": "K-STADIUM1", "serial": "1165 320 061", "panal": "K-STADIUM1", "floor": "11", "addr": 25, "ct": "", "model": "CVM-C10", "online": true}]}, "19": {"ip": "-", "mac": "-", "total": 10, "online": 10, "offline": 0, "meters": [{"no": 513, "name": "ESMCC1", "serial": "1165 240 051", "panal": "ESMCC1", "floor": "B1", "addr": 1, "ct": "", "model": "CVM-C10", "online": true}, {"no": 514, "name": "CW-TP-1,2,3,4", "serial": "1164 490 203", "panal": "ESMCC1", "floor": "B1", "addr": 2, "ct": "", "model": "CVM-C10", "online": true}, {"no": 515, "name": "RW-TP-1,2,3,4", "serial": "1164 490 208", "panal": "ESMCC1", "floor": "B1", "addr": 3, "ct": "", "model": "CVM-C10", "online": true}, {"no": 516, "name": "DP-1,2", "serial": "1165 200 697", "panal": "ESMCC1", "floor": "B1", "addr": 4, "ct": "", "model": "CVM-C10", "online": true}, {"no": 517, "name": "DP-3,4", "serial": "1164 490 382", "panal": "ESMCC1", "floor": "B1", "addr": 5, "ct": "", "model": "CVM-C10", "online": true}, {"no": 518, "name": "IRR-1,2", "serial": "1164 490 189", "panal": "ESMCC1", "floor": "B1", "addr": 6, "ct": "", "model": "CVM-C10", "online": true}, {"no": 519, "name": "WWTP", "serial": "1165 200 705", "panal": "ESMCC1", "floor": "B1", "addr": 7, "ct": "", "model": "CVM-C10", "online": true}, {"no": 520, "name": "RECYCLE", "serial": "1164 490 381", "panal": "ESMCC1", "floor": "B1", "addr": 8, "ct": "", "model": "CVM-C10", "online": true}, {"no": 521, "name": "JP-01", "serial": "1164 490 195", "panal": "ESMCC1", "floor": "B1", "addr": 9, "ct": "", "model": "CVM-C10", "online": true}, {"no": 522, "name": "JP-02", "serial": "", "panal": "ESMCC1", "floor": "B1", "addr": 10, "ct": "", "model": "CVM-C10", "online": true}]}};
+
+/* working copy — modified by user in Project Settings */
+let activeMeterData = JSON.parse(JSON.stringify(METER_DATA));
+
+function populateLoopSel(){
+  const opts='<option value="">เลือก Loop...</option>'+LOOPS.map(l=>`<option value="${l.n}">Loop ${l.n} (${l.m} · ${l.ip})</option>`).join('');
+  document.getElementById('f-loop').innerHTML=opts;
+  document.getElementById('e-loop').innerHTML=opts;
+  // also populate PS loop selector
+  const psSel = document.getElementById('ps-loop-sel');
+  if(psSel){
+    psSel.innerHTML='<option value="">-- เลือก Loop --</option>'+
+      Object.keys(activeMeterData).map(n=>`<option value="${n}">Loop ${n} (${activeMeterData[n].total} มิเตอร์)</option>`).join('');
+  }
+}
+
+window.renderMeterChecklist = function(){
+  const loopNum = document.getElementById('ps-loop-sel').value;
+  const list = document.getElementById('ps-meter-list');
+  const sumEl = document.getElementById('ps-loop-summary');
+  const gwRow = document.getElementById('ps-gateway-row');
+  if(!loopNum){ list.innerHTML=''; sumEl.style.display='none'; if(gwRow) gwRow.style.display='none'; return; }
+  const loopData = activeMeterData[loopNum];
+  if(!loopData){ list.innerHTML=''; return; }
+
+  // Show Gateway row with IP/MAC for this loop
+  if(gwRow){
+    gwRow.style.display='';
+    document.getElementById('ps-gw-ip').value  = loopData.ip  || '';
+    document.getElementById('ps-gw-mac').value = loopData.mac || '';
+  }
+  
+  const MODELS = ['CVM-C5','CVM-C6','CVM-C10','CVM-C11','CVM-C12c','CVM-C30','CVM-C31','CVM-B100','CVM-B150','CVM-A1500','CVMk2','CVM-NRG96','CEM-C6','CEM-C10','CEM-C30','CEM-C31','MK-LCD','EDMk','Other'];
+  list.innerHTML='<div class="meter-grid">'+loopData.meters.map(m=>{
+    const isOn = m.online;
+    const modelOpts = MODELS.map(mo=>`<div class="combo-item" data-val="${mo}">${mo}</div>`).join('');
+    return `<div class="meter-row ${isOn?'is-online':'is-offline'}" id="mr-${loopNum}-${m.no}" onclick="openMeterDetail('${loopNum}',${m.no})" style="cursor:pointer">
+      <input type="checkbox" class="meter-chk" ${isOn?'checked':''}
+        onclick="event.stopPropagation()"
+        onchange="toggleMeter('${loopNum}',${m.no},this.checked)"
+        title="${isOn?'Online':'Offline'}">
+      <div class="meter-info">
+        <div class="meter-name">#${m.no} ${m.name}</div>
+        <div class="meter-meta">S/N: ${m.serial||'-'}${m.note?' · '+m.note:''}</div>
+      </div>
+      <span class="combo-wrap" onclick="event.stopPropagation()">
+      <input type="text" class="combo-inp meter-model-inp" value="${m.model||''}" placeholder="รุ่น..." autocomplete="off"
+             onchange="changeMeterModel('${loopNum}',${m.no},this.value)"
+             oninput="filterCombo(this)">
+      <div class="combo-list">${modelOpts}</div>
+    </span>
+    </div>`;
+  }).join('')+'</div>';
+  
+  updateLoopSummary(loopNum);
+  // Init comboboxes in meter checklist
+  setTimeout(()=>{ document.querySelectorAll('#ps-meter-list .combo-wrap').forEach(initCombo); }, 50);
+};
+
+window.updateLoopGateway = function(){
+  const loopNum = document.getElementById('ps-loop-sel').value;
+  if(!loopNum || !activeMeterData[loopNum]) return;
+  activeMeterData[loopNum].ip  = document.getElementById('ps-gw-ip').value.trim();
+  activeMeterData[loopNum].mac = document.getElementById('ps-gw-mac').value.trim();
+};
+
+window.toggleMeter = function(loopNum, no, isOnline){
+  const loop = activeMeterData[loopNum];
+  const m = loop.meters.find(x=>x.no===no);
+  if(!m) return;
+  m.online = isOnline;
+  loop.online = loop.meters.filter(x=>x.online).length;
+  loop.offline = loop.total - loop.online;
+  const row = document.getElementById(`mr-${loopNum}-${no}`);
+  if(row){ row.className='meter-row '+(isOnline?'is-online':'is-offline'); }
+  updateLoopSummary(loopNum);
+};
+
+window.changeMeterModel = function(loopNum, no, model){
+  const m = activeMeterData[loopNum]?.meters.find(x=>x.no===no);
+  if(m){ m.model = model; renderModelCards(); }
+};
+
+/* ── METER DETAIL PANEL ── */
+window.openMeterDetail = function(loopNum, no){
+  const m = activeMeterData[loopNum]?.meters.find(x=>x.no===no);
+  if(!m) return;
+
+  // Highlight selected card
+  document.querySelectorAll('.meter-row').forEach(r=>r.style.outline='none');
+  const card = document.getElementById(`mr-${loopNum}-${no}`);
+  if(card){ card.style.outline='2px solid var(--accent)'; card.scrollIntoView({block:'nearest',behavior:'smooth'}); }
+
+  // Fill panel
+  document.getElementById('md-title').textContent  = `Loop ${loopNum} — #${m.no} ${m.name}`;
+  document.getElementById('md-name').value   = m.name   || '';
+  document.getElementById('md-serial').value = m.serial || '';
+  document.getElementById('md-model').value  = m.model  || 'CVM-C5';
+  document.getElementById('md-addr').value   = m.addr   || m.no || '';
+  document.getElementById('md-ct').value     = m.ct     || '';
+  document.getElementById('md-note').value   = m.note   || '';
+  document.getElementById('md-loop').value   = loopNum;
+  document.getElementById('md-no').value     = no;
+  document.getElementById('md-saved').style.display = 'none';
+
+  const panel = document.getElementById('ps-meter-detail');
+  panel.style.display = 'block';
+  panel.scrollIntoView({block:'nearest', behavior:'smooth'});
+};
+
+window.closeMeterDetail = function(){
+  document.getElementById('ps-meter-detail').style.display='none';
+  document.querySelectorAll('.meter-row').forEach(r=>r.style.outline='none');
+};
+
+window.saveMeterDetail = function(){
+  const loopNum = document.getElementById('md-loop').value;
+  const no      = Number(document.getElementById('md-no').value);
+  const m = activeMeterData[loopNum]?.meters.find(x=>x.no===no);
+  if(!m) return;
+
+  m.name   = document.getElementById('md-name').value.trim()   || m.name;
+  m.serial = document.getElementById('md-serial').value.trim() || m.serial;
+  m.model  = document.getElementById('md-model').value;
+  m.addr   = document.getElementById('md-addr').value.trim();
+  m.ct     = document.getElementById('md-ct').value.trim();
+  m.note   = document.getElementById('md-note').value.trim();
+
+  // Update card display
+  const card = document.getElementById(`mr-${loopNum}-${no}`);
+  if(card){
+    card.querySelector('.meter-name').textContent = `#${m.no} ${m.name}`;
+    card.querySelector('.meter-meta').textContent = `S/N: ${m.serial||'-'}${m.ct?' · CT '+m.ct:''}${m.note?' · '+m.note:''}`;
+    const mInp = card.querySelector('.combo-inp'); if(mInp) mInp.value = m.model;
+    document.getElementById('md-title').textContent = `Loop ${loopNum} — #${m.no} ${m.name}`;
+  }
+
+  // Update model cards on dashboard
+  renderModelCards();
+  // Show saved indicator
+  const sv = document.getElementById('md-saved');
+  sv.style.display='block';
+  setTimeout(()=>sv.style.display='none', 2000);
+};
+
+function updateLoopSummary(loopNum){
+  const loop = activeMeterData[loopNum];
+  const sumEl = document.getElementById('ps-loop-summary');
+  sumEl.style.display='block';
+  sumEl.innerHTML=`Loop ${loopNum} — Online: <span style="color:var(--green)">${loop.online}</span> | Offline: <span style="color:var(--red)">${loop.offline}</span> | Total: ${loop.total}`;
+}
+
+window.setAllOnline = function(online){
+  const loopNum = document.getElementById('ps-loop-sel').value;
+  if(!loopNum) return;
+  activeMeterData[loopNum].meters.forEach(m=>m.online=online);
+  activeMeterData[loopNum].online = online ? activeMeterData[loopNum].total : 0;
+  activeMeterData[loopNum].offline = online ? 0 : activeMeterData[loopNum].total;
+  window.renderMeterChecklist();
+};
+
+/* ── SERIAL LOOKUP ── */
+window.lookupMeterBySerial = function(serial){
+  const result = document.getElementById('f-lookup-result');
+  if(!serial || serial.length < 4){ result.style.display='none'; return; }
+
+  // Search in activeMeterData
+  let found = null;
+  for(const [loopNum, loopData] of Object.entries(activeMeterData)){
+    const m = loopData.meters.find(x => x.serial && String(x.serial).includes(serial));
+    if(m){ found = { loopNum, m }; break; }
+  }
+
+  if(found){
+    const {loopNum, m} = found;
+    // Auto-fill meter name and loop
+    document.getElementById('f-meter').value = m.name || '';
+    const loopSel = document.getElementById('f-loop');
+    // try to select matching loop
+    for(const opt of loopSel.options){
+      if(String(opt.value) === String(loopNum)){ opt.selected=true; break; }
+    }
+    result.style.display='block';
+    result.style.background='rgba(0,255,157,.08)';
+    result.style.border='1px solid rgba(0,255,157,.3)';
+    result.style.color='var(--green)';
+    result.innerHTML=`✓ พบ: <strong>#${m.no} ${m.name}</strong> · Loop ${loopNum} · Model ${m.model||'-'}`;
+    // store found meter ref for saveLog
+    window._foundMeter = { loopNum: String(loopNum), no: m.no };
+  } else if(serial.length >= 6){
+    result.style.display='block';
+    result.style.background='rgba(255,71,87,.08)';
+    result.style.border='1px solid rgba(255,71,87,.3)';
+    result.style.color='var(--red)';
+    result.innerHTML='ไม่พบ Serial นี้ใน Loop ปัจจุบัน — กรอกชื่อมิเตอร์เองด้านล่าง';
+    window._foundMeter = null;
+  }
+};
+
+/* ── SHOW/HIDE REPLACE FIELDS on type change ── */
+document.addEventListener('DOMContentLoaded', function(){
+  const fType = document.getElementById('f-type');
+  if(fType) fType.addEventListener('change', function(){
+    const rf = document.getElementById('f-replace-fields');
+    if(rf) rf.style.display = this.value==='replace' ? '' : 'none';
+  });
+});
+
+window.openModal = function(){
+  const now=new Date();
+  document.getElementById('m-dt').textContent=now.toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})+' '+now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('f-tech').value=currentUser||'';
+  document.getElementById('overlay').classList.add('open');
+};
+
+window.closeModal = function(){
+  document.getElementById('overlay').classList.remove('open');
+  ['f-loop','f-meter','f-sold','f-snew','f-detail','f-svcno'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.tagName==='SELECT'?el.selectedIndex=0:el.value='';
+  });
+  const fnm = document.getElementById('f-new-model');
+  const fns = document.getElementById('f-new-status');
+  if(fnm) fnm.selectedIndex=0;
+  if(fns) fns.selectedIndex=0;
+  const rf = document.getElementById('f-replace-fields');
+  if(rf) rf.style.display='none';
+  const lr = document.getElementById('f-lookup-result');
+  if(lr) lr.style.display='none';
+  document.getElementById('f-img').value='';
+  document.getElementById('f-img-preview').innerHTML='';
+  window._foundMeter = null;
+};
+
+window.saveLog = async function(){
+  const loop  =document.getElementById('f-loop').value;
+  const type  =document.getElementById('f-type').value;
+  const svcno =document.getElementById('f-svcno').value.trim();
+  const meter =document.getElementById('f-meter').value.trim();
+  const sold  =document.getElementById('f-sold').value.trim();
+  const snew  =document.getElementById('f-snew').value.trim();
+  const detail=document.getElementById('f-detail').value.trim();
+  const tech  =document.getElementById('f-tech').value.trim();
+  const newModel  = document.getElementById('f-new-model')?.value || '';
+  const newStatus = document.getElementById('f-new-status')?.value || 'online';
+
+  if(!loop||!meter){alert('กรุณาเลือก Loop และระบุชื่อมิเตอร์');return;}
+
+  const imgFiles=document.getElementById('f-img').files, images=[];
+  for(const file of imgFiles){
+    const b64=await new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result);r.readAsDataURL(file);});
+    images.push({name:file.name,data:b64});
+  }
+
+  const btn=document.querySelector('#overlay .btn-save');
+  btn.textContent='กำลังบันทึก...'; btn.disabled=true;
+
+  try {
+    await fsSaveLog({user:currentUser,loop,type,svcno,meter,sold,snew,detail,tech,images,newModel,newStatus});
+
+    // ── AUTO-UPDATE LOOP METER DATA if type = replace ──
+    if(type==='replace' && window._foundMeter){
+      const {loopNum, no} = window._foundMeter;
+      const loopData = activeMeterData[loopNum];
+      const m = loopData?.meters.find(x=>x.no===no);
+      if(m){
+        if(snew)     m.serial = snew;           // อัปเดต Serial
+        if(newModel) m.model  = newModel;        // อัปเดต Model
+        if(meter)    m.name   = meter;           // อัปเดต ชื่อมิเตอร์
+        m.online = newStatus==='online';         // อัปเดต Online/Offline
+        // Recalculate loop totals
+        loopData.online  = loopData.meters.filter(x=>x.online).length;
+        loopData.offline = loopData.total - loopData.online;
+      }
+      window._foundMeter = null;
+    }
+
+    window.closeModal();
+    await fsLoadLogs();
+    window.switchTab('log', document.querySelectorAll('.nav-btn')[1]);
+  } catch(e){alert('บันทึกไม่สำเร็จ: '+e.message);}
+  btn.textContent='บันทึก →'; btn.disabled=false;
+};
+
+/* ── EDIT LOG ── */
+window.openEditModal = function(fsId){
+  const l=logs.find(x=>x._id===fsId); if(!l) return;
+  document.getElementById('e-id').value=fsId;
+  document.getElementById('e-loop').value=l.loop;
+  document.getElementById('e-type').value=l.type;
+  document.getElementById('e-meter').value=l.meter||'';
+  document.getElementById('e-sold').value=l.sold||'';
+  document.getElementById('e-snew').value=l.snew||'';
+  document.getElementById('e-detail').value=l.detail||'';
+  document.getElementById('e-tech').value=l.tech||'';
+  document.getElementById('overlay-edit').classList.add('open');
+};
+window.closeEditModal = function(){ document.getElementById('overlay-edit').classList.remove('open'); };
+
+window.updateLog = async function(){
+  const fsId=document.getElementById('e-id').value;
+  try {
+    await fsUpdateLog(fsId,{loop:document.getElementById('e-loop').value,type:document.getElementById('e-type').value,meter:document.getElementById('e-meter').value.trim(),sold:document.getElementById('e-sold').value.trim(),snew:document.getElementById('e-snew').value.trim(),detail:document.getElementById('e-detail').value.trim(),tech:document.getElementById('e-tech').value.trim()});
+    window.closeEditModal(); await fsLoadLogs();
+  } catch(e){alert('แก้ไขไม่สำเร็จ: '+e.message);}
+};
+
+window.deleteLog = async function(){
+  const fsId=document.getElementById('e-id').value;
+  if(!confirm('ต้องการลบรายการนี้?')) return;
+  try { await fsDeleteLog(fsId); window.closeEditModal(); await fsLoadLogs(); }
+  catch(e){alert('ลบไม่สำเร็จ: '+e.message);}
+};
+
+/* ── RENDER LOGS ── */
+window.renderLogs = function(){
+  const q=(document.getElementById('f-q')?.value||'').toLowerCase(), t=document.getElementById('f-t')?.value||'';
+  const list=logs.filter(l=>(!t||l.type===t)&&(!q||[l.loop,l.meter,l.detail,l.tech,l.sold,l.snew,l.svcno].some(v=>String(v||'').toLowerCase().includes(q))));
+  const wrap=document.getElementById('log-wrap');
+  if(!wrap) return;
+  if(!list.length){ wrap.innerHTML=`<div class="empty">${logs.length?'ไม่พบรายการที่ตรงกับเงื่อนไข':'ยังไม่มีรายการ — กด "+ บันทึก Service ใหม่" เพื่อเริ่มต้น'}</div>`; return; }
+  wrap.innerHTML='<div class="log-list">'+list.map((l,i)=>{
+    const d=new Date(l.ts), ds=isNaN(d)?'-':d.toLocaleDateString('th-TH',{day:'2-digit',month:'short',year:'numeric'}), ts=isNaN(d)?'-':d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    const meta=[];
+    if(l.svcno) meta.push(`Service No.: ${l.svcno}`);
+    if(l.sold)  meta.push(`Serial เดิม: ${l.sold}`);
+    if(l.snew)  meta.push(`Serial ใหม่: ${l.snew}`);
+    if(l.tech)  meta.push(`ผู้ตรวจสอบ: ${l.tech}`);
+    meta.push(`บัญชี: ${l.user}`);
+    const imgHtml=(l.images&&l.images.length)?`<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">${l.images.map(img=>`<img src="${img.data}" style="width:64px;height:64px;object-fit:cover;border-radius:4px;border:1px solid var(--border);cursor:pointer" onclick="window.open('${img.data}')" title="${img.name}">`).join('')}</div>`:'';
+    return `<div class="log-item">
+      <div class="log-num">#${String(list.length-i).padStart(3,'0')}</div>
+      <div class="log-body">
+        <div class="log-tag ${TCLASS[l.type]}">${TLABEL[l.type]}</div>
+        <div class="log-desc">Loop ${l.loop} — ${l.meter}</div>
+        ${l.detail?`<div class="log-note">${l.detail}</div>`:''}
+        <div class="log-meta">${meta.map(m=>`<span>${m}</span>`).join('')}</div>
+        ${imgHtml}
+        <button class="btn-edit" onclick="openEditModal('${l._id}')">✏ แก้ไข</button>
+      </div>
+      <div class="log-time">${ds}<br>${ts}</div>
+    </div>`;
+  }).join('')+'</div>';
+};
+
+/* ── EXPORT CSV ── */
+window.exportCSV = function(){
+  if(!logs.length){alert('ยังไม่มีข้อมูล');return;}
+  const h=['#','วันที่','เวลา','Service No.','Loop','ประเภทงาน','มิเตอร์','Serial เดิม','Serial ใหม่','รายละเอียด','ผู้ตรวจสอบ','บัญชี'];
+  const rows=logs.map((l,i)=>{
+    const d=new Date(l.ts), ds=isNaN(d)?'-':d.toLocaleDateString('th-TH',{day:'2-digit',month:'2-digit',year:'numeric'}), ts=isNaN(d)?'-':d.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+    return [logs.length-i,ds,ts,l.svcno||'',`Loop ${l.loop}`,TLABEL[l.type]||l.type,l.meter||'',l.sold||'',l.snew||'',l.detail||'',l.tech||'',l.user||''].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',');
+  });
+  const blob=new Blob(['\uFEFF'+[h.join(','),...rows].join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`datalog_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+};
+
+/* ── USER MANAGEMENT ── */
+window.openUserModal = function(){
+  ['nu-user','nu-pass'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('nu-role').value='user';
+  document.getElementById('nu-err').style.display='none';
+  document.getElementById('overlay-user').classList.add('open');
+};
+window.closeUserModal = function(){ document.getElementById('overlay-user').classList.remove('open'); };
+
+window.saveUser = function(){
+  const u=document.getElementById('nu-user').value.trim(), p=document.getElementById('nu-pass').value, r=document.getElementById('nu-role').value, errEl=document.getElementById('nu-err');
+  if(!u||!p){errEl.textContent='กรุณากรอก Username และ Password';errEl.style.display='block';return;}
+  if(!/^[a-zA-Z0-9_]+$/.test(u)){errEl.textContent='Username ใช้ได้เฉพาะ a-z, A-Z, 0-9, _';errEl.style.display='block';return;}
+  const users=loadUsers();
+  if(users[u]){errEl.textContent=`Username "${u}" มีอยู่แล้ว`;errEl.style.display='block';return;}
+  const saved=JSON.parse(localStorage.getItem('avera_users')||'{}');
+  saved[u]={pass:p,role:r}; saveUsers(saved); window.closeUserModal(); renderUserList();
+};
+
+window.deleteUser = function(u){
+  if(u===currentUser){alert('ไม่สามารถลบบัญชีที่กำลังใช้งานอยู่');return;}
+  if(DEFAULT_USERS[u]){alert('ไม่สามารถลบ User เริ่มต้นของระบบ');return;}
+  if(!confirm(`ต้องการลบ User "${u}"?`)) return;
+  const saved=JSON.parse(localStorage.getItem('avera_users')||'{}'); delete saved[u]; saveUsers(saved); renderUserList();
+};
+
+function renderUserList(){
+  const users=loadUsers();
+  const RL = { admin:'Admin', service:'Service', user:'User' };
+  const rows=Object.entries(users).map(([u,info])=>{
+    const isDef=!!DEFAULT_USERS[u], delBtn=isDef?`<span style="font-family:var(--mono);font-size:10px;color:var(--muted)">built-in</span>`:`<button class="btn-del" onclick="deleteUser('${u}')">ลบ</button>`;
+    return `<tr><td style="font-family:var(--mono);font-weight:600">${u}</td><td><span class="role-badge role-${info.role}">${RL[info.role]||info.role}</span></td><td style="font-family:var(--mono);color:var(--muted)">••••••••</td><td>${delBtn}</td></tr>`;
+  }).join('');
+  document.getElementById('user-list-wrap').innerHTML=`
+    <div class="user-table-wrap"><table class="user-table">
+      <thead><tr><th>Username</th><th>Role</th><th>Password</th><th>จัดการ</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>
+    <div style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:12px;line-height:1.9">
+      <span style="color:var(--muted)">User</span> — เห็นเฉพาะ Dashboard<br>
+      <span style="color:var(--green)">Service</span> — Dashboard + Datalog + Project Settings<br>
+      <span style="color:var(--accent)">Admin</span> — เห็นทุกอย่าง + จัดการ User
+    </div>`;
+}
+
+/* ── DOM EVENTS ── */
+document.addEventListener('DOMContentLoaded',function(){
+  ['overlay','overlay-edit','overlay-user'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}); });
+  const fi=document.getElementById('f-img');
+  if(fi) fi.addEventListener('change',function(){
+    const prev=document.getElementById('f-img-preview'); prev.innerHTML='';
+    for(const file of this.files){const url=URL.createObjectURL(file);const img=document.createElement('img');img.src=url;img.style.cssText='width:72px;height:72px;object-fit:cover;border-radius:4px;border:1px solid var(--border)';prev.appendChild(img);}
+  });
+});
+
+const st=document.createElement('style');
+st.textContent='@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}';
+document.head.appendChild(st);
+
+})(); // end async IIFE
+</script>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+window.addEventListener('load', function(){
+  try {
+    var qrEl = document.getElementById('qr-box');
+    if(qrEl && typeof QRCode !== 'undefined'){
+      new QRCode(qrEl, {
+        text: 'https://engineeringserviceaveraunitis-ux.github.io/KBTG/',
+        width: 180,
+        height: 180,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+  } catch(e){ console.warn('QR Code error:', e); }
+});
+</script>
+
+
+
+<!-- ══ MODAL: ADD LOOP ══ -->
+<div class="overlay" id="overlay-add-loop">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">เพิ่ม Loop ใหม่</div>
+    <div class="modal-sub">กำหนดจำนวนมิเตอร์และข้อมูล Gateway</div>
+    <div class="mrow">
+      <div class="mfield">
+        <label>Loop Number</label>
+        <input type="number" id="al-num" placeholder="เช่น 1" min="1">
+      </div>
+      <div class="mfield">
+        <label>จำนวน Meter</label>
+        <input type="number" id="al-total" placeholder="เช่น 12" min="1" max="100">
+      </div>
+    </div>
+    <div class="mfield">
+      <label>Meter Model เริ่มต้น</label>
+      <select id="al-model" style="width:100%">
+        <option value="CVM-C5">CVM-C5</option>
+        <option value="CVM-C6">CVM-C6</option>
+        <option value="CVM-B100">CVM-B100</option>
+        <option value="CVM-B150">CVM-B150</option>
+        <option value="CVM-A1500">CVM-A1500</option>
+        <option value="CVMk2">CVMk2</option>
+        <option value="MK-LCD">MK-LCD</option>
+        <option value="EDMk">EDMk</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="mrow">
+      <div class="mfield"><label>IP Address (Gateway)</label><input type="text" id="al-ip" placeholder="192.168.0.1"></div>
+      <div class="mfield"><label>MAC Address (Gateway)</label><input type="text" id="al-mac" placeholder="00:26:45:00:FD:95"></div>
+    </div>
+    <div class="mfield"><label>ชื่อมิเตอร์ prefix (เช่น Room)</label><input type="text" id="al-prefix" placeholder="Room หรือ Meter"></div>
+    <div id="al-err" style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:10px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddLoopModal()">ยกเลิก</button>
+      <button class="btn-save" onclick="doAddLoop()">เพิ่ม Loop →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: ADD METER ══ -->
+<div class="overlay" id="overlay-add-meter">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-title">เพิ่ม Meter ใน Loop</div>
+    <div class="modal-sub">เพิ่มมิเตอร์เข้า Loop ที่เลือกอยู่</div>
+    <div class="mfield"><label>ชื่อมิเตอร์</label><input type="text" id="am-name" placeholder="เช่น Room 101"></div>
+    <div class="mrow">
+      <div class="mfield"><label>Serial Number</label><input type="text" id="am-serial" placeholder="เช่น 1177340118"></div>
+      <div class="mfield"><label>Address (Modbus)</label><input type="number" id="am-addr" placeholder="เช่น 1" min="1"></div>
+    </div>
+    <div class="mrow">
+      <div class="mfield">
+        <label>Model</label>
+        <select id="am-model" style="width:100%">
+          <option value="CVM-C5">CVM-C5</option>
+          <option value="CVM-C6">CVM-C6</option>
+          <option value="CVM-B100">CVM-B100</option>
+          <option value="CVM-B150">CVM-B150</option>
+          <option value="CVM-A1500">CVM-A1500</option>
+          <option value="CVMk2">CVMk2</option>
+          <option value="MK-LCD">MK-LCD</option>
+          <option value="EDMk">EDMk</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="mfield"><label>ขนาด C.T.</label><input type="text" id="am-ct" placeholder="เช่น 100/5"></div>
+    </div>
+    <div class="mfield"><label>หมายเหตุ</label><input type="text" id="am-note" placeholder="หมายเหตุเพิ่มเติม"></div>
+    <div id="am-err" style="font-family:var(--mono);font-size:11px;color:var(--red);margin-bottom:10px;display:none"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddMeterModal()">ยกเลิก</button>
+      <button class="btn-save" onclick="doAddMeter()">เพิ่ม Meter →</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+// ── ADD LOOP / METER / DELETE LOOP ──
+window.openAddLoopModal = function(){
+  ['al-num','al-total','al-ip','al-mac','al-prefix'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('al-err').style.display='none';
+  // suggest next loop number
+  const nextN = Object.keys(activeMeterData).length + 1;
+  document.getElementById('al-num').value = nextN;
+  document.getElementById('overlay-add-loop').classList.add('open');
+};
+window.closeAddLoopModal = function(){ document.getElementById('overlay-add-loop').classList.remove('open'); };
+
+window.doAddLoop = function(){
+  const errEl = document.getElementById('al-err');
+  const loopNum = document.getElementById('al-num').value.trim();
+  const total   = parseInt(document.getElementById('al-total').value)||0;
+  const model   = document.getElementById('al-model').value;
+  const ip      = document.getElementById('al-ip').value.trim()||'-';
+  const mac     = document.getElementById('al-mac').value.trim()||'-';
+  const prefix  = document.getElementById('al-prefix').value.trim()||'Meter';
+
+  if(!loopNum || !total){
+    errEl.textContent='กรุณากรอก Loop Number และจำนวน Meter'; errEl.style.display='block'; return;
+  }
+  if(activeMeterData[loopNum]){
+    errEl.textContent=`Loop ${loopNum} มีอยู่แล้ว`; errEl.style.display='block'; return;
+  }
+
+  // Generate meters
+  const meters = Array.from({length:total},(_,i)=>({
+    no: i+1,
+    name: `${prefix} ${loopNum}${String(i+1).padStart(2,'0')}`,
+    serial: '',
+    model: model,
+    addr: i+1,
+    ct: '',
+    note: '',
+    online: true
+  }));
+
+  activeMeterData[loopNum] = { ip, mac, total, online:total, offline:0, meters };
+
+  // Add to LOOPS display array
+  if(!window._cfgLoops) window._cfgLoops = [];
+  window._cfgLoops.push({ n:Number(loopNum), t:total, on:total, off:0, m:model, ip, mac });
+  window._cfgLoops.sort((a,b)=>a.n-b.n);
+
+  closeAddLoopModal();
+  populateLoopSel();
+  renderLoops();
+  renderModelCards();
+
+  // Auto-select new loop
+  const sel = document.getElementById('ps-loop-sel');
+  if(sel){ sel.value = loopNum; window.renderMeterChecklist(); }
+
+  const st=document.getElementById('ps-status');
+  st.textContent=`✓ เพิ่ม Loop ${loopNum} สำเร็จ — ${total} มิเตอร์`;
+  st.style.color='var(--green)'; st.style.display='block';
+  setTimeout(()=>st.style.display='none',3000);
+};
+
+window.openAddMeterModal = function(){
+  const loopNum = document.getElementById('ps-loop-sel').value;
+  if(!loopNum){ alert('กรุณาเลือก Loop ก่อน'); return; }
+  ['am-name','am-serial','am-addr','am-ct','am-note'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('am-err').style.display='none';
+  // suggest next meter number
+  const loop = activeMeterData[loopNum];
+  if(loop){ document.getElementById('am-addr').value = loop.meters.length + 1; }
+  document.getElementById('overlay-add-meter').classList.add('open');
+};
+window.closeAddMeterModal = function(){ document.getElementById('overlay-add-meter').classList.remove('open'); };
+
+window.doAddMeter = function(){
+  const loopNum = document.getElementById('ps-loop-sel').value;
+  const errEl   = document.getElementById('am-err');
+  const name    = document.getElementById('am-name').value.trim();
+  const serial  = document.getElementById('am-serial').value.trim();
+  const addr    = parseInt(document.getElementById('am-addr').value)||0;
+  const model   = document.getElementById('am-model').value;
+  const ct      = document.getElementById('am-ct').value.trim();
+  const note    = document.getElementById('am-note').value.trim();
+
+  if(!name){ errEl.textContent='กรุณากรอกชื่อมิเตอร์'; errEl.style.display='block'; return; }
+
+  const loop = activeMeterData[loopNum];
+  if(!loop){ errEl.textContent='ไม่พบ Loop นี้'; errEl.style.display='block'; return; }
+
+  const newNo = loop.meters.length + 1;
+  loop.meters.push({ no:newNo, name, serial, model, addr:addr||newNo, ct, note, online:true });
+  loop.total   = loop.meters.length;
+  loop.online  = loop.meters.filter(m=>m.online).length;
+  loop.offline = loop.total - loop.online;
+
+  // Update _cfgLoops display
+  if(window._cfgLoops){
+    const lEntry = window._cfgLoops.find(l=>l.n===Number(loopNum));
+    if(lEntry){ lEntry.t = loop.total; lEntry.on = loop.online; lEntry.off = loop.offline; }
+  }
+
+  closeAddMeterModal();
+  window.renderMeterChecklist();
+  renderLoops();
+  renderModelCards();
+
+  const st=document.getElementById('ps-status');
+  st.textContent=`✓ เพิ่ม Meter "${name}" ใน Loop ${loopNum} สำเร็จ`;
+  st.style.color='var(--green)'; st.style.display='block';
+  setTimeout(()=>st.style.display='none',3000);
+};
+
+window.confirmDeleteLoop = function(){
+  const loopNum = document.getElementById('ps-loop-sel').value;
+  if(!loopNum){ alert('กรุณาเลือก Loop ที่ต้องการลบก่อน'); return; }
+  if(!confirm(`ต้องการลบ Loop ${loopNum} และมิเตอร์ทั้งหมดใน Loop นี้?`)) return;
+
+  delete activeMeterData[loopNum];
+  if(window._cfgLoops) window._cfgLoops = window._cfgLoops.filter(l=>l.n!==Number(loopNum));
+
+  document.getElementById('ps-loop-sel').value = '';
+  document.getElementById('ps-meter-list').innerHTML = '';
+  document.getElementById('ps-loop-summary').style.display='none';
+  document.getElementById('ps-gateway-row').style.display='none';
+  document.getElementById('ps-meter-detail').style.display='none';
+
+  populateLoopSel();
+  renderLoops();
+  renderModelCards();
+
+  const st=document.getElementById('ps-status');
+  st.textContent=`✓ ลบ Loop ${loopNum} แล้ว`;
+  st.style.color='var(--red)'; st.style.display='block';
+  setTimeout(()=>{ st.style.display='none'; st.style.color='var(--green)'; },3000);
+};
+
+// Close add-loop/add-meter overlays on backdrop click
+document.addEventListener('DOMContentLoaded',function(){
+  ['overlay-add-loop','overlay-add-meter'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
+  });
+});
+</script>
+
+
+
+</body>
+</html>
